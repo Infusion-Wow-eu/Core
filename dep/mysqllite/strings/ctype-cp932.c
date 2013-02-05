@@ -207,7 +207,7 @@ static MY_UNICASE_INFO c81[256]=
   /* 8130-813F */
   {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
   {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
-  
+
   {0x8140,0x8140,0x3000}, /* 8140-814F */
   {0x8141,0x8141,0x3001},
   {0x8142,0x8142,0x3002},
@@ -1267,7 +1267,7 @@ static MY_UNICASE_INFO cEE[256]=
   {0xEE4D,0xEE4D,0x7429},
   {0xEE4E,0xEE4E,0x742E},
   {0xEE4F,0xEE4F,0x7462},
-  
+
   {0xEE50,0xEE50,0x7489}, /* EE50 */
   {0xEE51,0xEE51,0x749F},
   {0xEE52,0xEE52,0x7501},
@@ -1723,7 +1723,7 @@ static int my_strnncoll_cp932_internal(CHARSET_INFO *cs,
 }
 
 static int my_strnncoll_cp932(CHARSET_INFO *cs __attribute__((unused)),
-			      const uchar *a, size_t a_length, 
+			      const uchar *a, size_t a_length,
 			      const uchar *b, size_t b_length,
                               my_bool b_is_prefix)
 {
@@ -1734,7 +1734,7 @@ static int my_strnncoll_cp932(CHARSET_INFO *cs __attribute__((unused)),
 }
 
 static int my_strnncollsp_cp932(CHARSET_INFO *cs __attribute__((unused)),
-                                const uchar *a, size_t a_length, 
+                                const uchar *a, size_t a_length,
                                 const uchar *b, size_t b_length,
                                 my_bool diff_if_only_endspace_difference
                                 __attribute__((unused)))
@@ -34573,11 +34573,11 @@ static uint16 unicode_to_cp932[65536]=
 
 /*
   CP932 encoding components:
-  
+
   [00..7F]                        = ASCII [U+0000..U+007F]
   [A1..DF]                        = JIS-X-0201 Katakana [U+FF61..U+FF9F]
   [81..9F,E0..FC][40..7E,80..FC]  = JIS-X-0208 (MS version)
-  
+
   [80,A0,FD,FE,FF]                = Invalid leading byte
 */
 
@@ -34684,7 +34684,7 @@ size_t my_numcells_cp932(CHARSET_INFO *cs __attribute__((unused)),
   size_t clen= 0;
   const uchar *b= (const uchar *) str;
   const uchar *e= (const uchar *) str_end;
-  
+
   for (clen= 0; b < e; )
   {
     if (*b >= 0xA1 && *b <= 0xDF)

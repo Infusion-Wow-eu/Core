@@ -1,7 +1,10 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ *
+ * Copyright (C) 2011- 2013 ArkCORE2 <http://www.arkania.net/>
+ * Copyright (C) 2010- 2013 Project SkyFire <http://www.projectskyfire.org/> 
+ *
+ * Copyright (C) 2008- 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005- 2013 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -33,6 +36,7 @@ SMSG_CALENDAR_EVENT_INVITE_STATUS_ALERT [ Structure unkown ]
 
 */
 
+#include "gamePCH.h"
 #include "Common.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
@@ -111,7 +115,7 @@ void WorldSession::HandleCalendarGetCalendar(WorldPacket& /*recvData*/)
     data << uint32(counter);                               // instance save count
 
     for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
-        for (Player::BoundInstancesMap::const_iterator itr = _player->_boundInstances[i].begin(); itr != _player->_boundInstances[i].end(); ++itr)
+        for (Player::BoundInstancesMap::const_iterator itr = _player->m_boundInstances[i].begin(); itr != _player->m_boundInstances[i].end(); ++itr)
             if (itr->second.perm)
             {
                 InstanceSave const* save = itr->second.save;
@@ -214,6 +218,7 @@ void WorldSession::HandleCalendarArenaTeam(WorldPacket& recvData)
 
     sLog->outDebug(LOG_FILTER_NETWORKIO, "Calendar: CMSG_CALENDAR_ARENA_TEAM - unk1: %d", unk1);
 }
+
 
 void WorldSession::HandleCalendarAddEvent(WorldPacket& recvData)
 {

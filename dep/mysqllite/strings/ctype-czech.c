@@ -240,7 +240,7 @@ while (1)						\
 */
 
 static int my_strnncoll_czech(CHARSET_INFO *cs __attribute__((unused)),
-			      const uchar *s1, size_t len1, 
+			      const uchar *s1, size_t len1,
 			      const uchar *s2, size_t len2,
                               my_bool s2_is_prefix)
 {
@@ -271,8 +271,8 @@ static int my_strnncoll_czech(CHARSET_INFO *cs __attribute__((unused)),
 */
 
 static
-int my_strnncollsp_czech(CHARSET_INFO * cs, 
-                         const uchar *s, size_t slen, 
+int my_strnncollsp_czech(CHARSET_INFO * cs,
+                         const uchar *s, size_t slen,
                          const uchar *t, size_t tlen,
                          my_bool diff_if_only_endspace_difference
                          __attribute__((unused)))
@@ -287,7 +287,7 @@ int my_strnncollsp_czech(CHARSET_INFO * cs,
   the length of the strings being specified
 */
 
-static size_t my_strnxfrm_czech(CHARSET_INFO *cs __attribute__((unused)), 
+static size_t my_strnxfrm_czech(CHARSET_INFO *cs __attribute__((unused)),
                                 uchar *dest, size_t len,
                                 const uchar *src, size_t srclen)
 {

@@ -1,5 +1,8 @@
-# Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
-# Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+# Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+#
+# Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+#
+# Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
 #
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without
@@ -9,7 +12,6 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-add_subdirectory(mmaps_generator)
 add_subdirectory(extractor)
 add_subdirectory(vmap3_assembler)
 add_subdirectory(vmap3_extractor)

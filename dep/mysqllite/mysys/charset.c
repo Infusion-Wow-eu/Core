@@ -22,10 +22,10 @@
 
 /*
   The code below implements this functionality:
-  
+
     - Initializing charset related structures
     - Loading dynamic charsets
-    - Searching for a proper CHARSET_INFO 
+    - Searching for a proper CHARSET_INFO
       using charset name, collation name or collation ID
     - Setting server default character set
 */
@@ -43,10 +43,10 @@ get_collation_number_internal(const char *name)
        cs < all_charsets + array_elements(all_charsets);
        cs++)
   {
-    if ( cs[0] && cs[0]->name && 
+    if ( cs[0] && cs[0]->name &&
          !my_strcasecmp(&my_charset_latin1, cs[0]->name, name))
       return cs[0]->number;
-  }  
+  }
   return 0;
 }
 
@@ -58,13 +58,13 @@ static my_bool init_state_maps(CHARSET_INFO *cs)
 
   if (!(cs->state_map= (uchar*) my_once_alloc(256, MYF(MY_WME))))
     return 1;
-    
+
   if (!(cs->ident_map= (uchar*) my_once_alloc(256, MYF(MY_WME))))
     return 1;
 
   state_map= cs->state_map;
   ident_map= cs->ident_map;
-  
+
   /* Fill state_map with states to get a faster parser */
   for (i=0; i < 256 ; i++)
   {
@@ -120,7 +120,7 @@ static void simple_cs_init_functions(CHARSET_INFO *cs)
     cs->coll= &my_collation_8bit_bin_handler;
   else
     cs->coll= &my_collation_8bit_simple_ci_handler;
-  
+
   cs->cset= &my_charset_8bit_handler;
 }
 
@@ -131,15 +131,15 @@ static int cs_copy_data(CHARSET_INFO *to, CHARSET_INFO *from)
   if (from->csname)
     if (!(to->csname= my_once_strdup(from->csname,MYF(MY_WME))))
       goto err;
-  
+
   if (from->name)
     if (!(to->name= my_once_strdup(from->name,MYF(MY_WME))))
       goto err;
-  
+
   if (from->comment)
     if (!(to->comment= my_once_strdup(from->comment,MYF(MY_WME))))
       goto err;
-  
+
   if (from->ctype)
   {
     if (!(to->ctype= (uchar*) my_once_memdup((char*) from->ctype,
@@ -219,15 +219,15 @@ static int add_collation(CHARSET_INFO *cs)
         return MY_XML_ERROR;
       bzero((void*)all_charsets[cs->number],sizeof(CHARSET_INFO));
     }
-    
+
     if (cs->primary_number == cs->number)
       cs->state |= MY_CS_PRIMARY;
-      
+
     if (cs->binary_number == cs->number)
       cs->state |= MY_CS_BINSORT;
-    
+
     all_charsets[cs->number]->state|= cs->state;
-    
+
     if (!(all_charsets[cs->number]->state & MY_CS_COMPILED))
     {
       CHARSET_INFO *newcs= all_charsets[cs->number];
@@ -241,7 +241,7 @@ static int add_collation(CHARSET_INFO *cs)
 #if defined(HAVE_CHARSET_ucs2) && defined(HAVE_UCA_COLLATIONS)
         copy_uca_collation(newcs, &my_charset_ucs2_unicode_ci);
         newcs->state|= MY_CS_AVAILABLE | MY_CS_LOADED | MY_CS_NONASCII;
-#endif        
+#endif
       }
       else if (!strcmp(cs->csname, "utf8") || !strcmp(cs->csname, "utf8mb3"))
       {
@@ -285,16 +285,16 @@ static int add_collation(CHARSET_INFO *cs)
           all_charsets[cs->number]->state |= MY_CS_LOADED;
         }
         all_charsets[cs->number]->state|= MY_CS_AVAILABLE;
-        
+
         /*
           Check if case sensitive sort order: A < a < B.
           We need MY_CS_FLAG for regex library, and for
           case sensitivity flag for 5.0 client protocol,
-          to support isCaseSensitive() method in JDBC driver 
+          to support isCaseSensitive() method in JDBC driver
         */
         if (sort_order && sort_order['A'] < sort_order['a'] &&
                           sort_order['a'] < sort_order['B'])
-          all_charsets[cs->number]->state|= MY_CS_CSSORT; 
+          all_charsets[cs->number]->state|= MY_CS_CSSORT;
 
         if (my_charset_is_8bit_pure_ascii(all_charsets[cs->number]))
           all_charsets[cs->number]->state|= MY_CS_PUREASCII;
@@ -347,19 +347,19 @@ static my_bool my_read_charset_file(const char *filename, myf myflags)
   int  fd;
   size_t len, tmp_len;
   MY_STAT stat_info;
-  
+
   if (!my_stat(filename, &stat_info, MYF(myflags)) ||
        ((len= (uint)stat_info.st_size) > MY_MAX_ALLOWED_BUF) ||
        !(buf= (uchar*) my_malloc(len,myflags)))
     return TRUE;
-  
+
   if ((fd= mysql_file_open(key_file_charset, filename, O_RDONLY, myflags)) < 0)
     goto error;
   tmp_len= mysql_file_read(fd, buf, len, myflags);
   mysql_file_close(fd, myflags);
   if (tmp_len != len)
     goto error;
-  
+
   if (my_parse_charset_xml((char*) buf,len,add_collation))
   {
 #ifdef NOT_YET
@@ -369,7 +369,7 @@ static my_bool my_read_charset_file(const char *filename, myf myflags)
 	   my_xml_error_string(&p));
 #endif
   }
-  
+
   my_free(buf);
   return FALSE;
 
@@ -475,7 +475,7 @@ static uint
 get_charset_number_internal(const char *charset_name, uint cs_flags)
 {
   CHARSET_INFO **cs;
-  
+
   for (cs= all_charsets;
        cs < all_charsets + array_elements(all_charsets);
        cs++)
@@ -483,7 +483,7 @@ get_charset_number_internal(const char *charset_name, uint cs_flags)
     if ( cs[0] && cs[0]->csname && (cs[0]->state & cs_flags) &&
          !my_strcasecmp(&my_charset_latin1, cs[0]->csname, charset_name))
       return cs[0]->number;
-  }  
+  }
   return 0;
 }
 
@@ -505,7 +505,6 @@ uint get_charset_number(const char *charset_name, uint cs_flags)
     return get_charset_number_internal(charset_name, cs_flags);
   return 0;
 }
-                  
 
 const char *get_charset_name(uint charset_number)
 {
@@ -518,7 +517,7 @@ const char *get_charset_name(uint charset_number)
     if (cs && (cs->number == charset_number) && cs->name)
       return (char*) cs->name;
   }
-  
+
   return "?";   /* this mimics find_type() */
 }
 
@@ -572,10 +571,10 @@ CHARSET_INFO *get_charset(uint cs_number, myf flags)
     return default_charset_info;
 
   my_pthread_once(&charsets_initialized, init_available_charsets);
- 
-  if (cs_number >= array_elements(all_charsets)) 
+
+  if (cs_number >= array_elements(all_charsets))
     return NULL;
-  
+
   cs=get_internal_charset(cs_number, flags);
 
   if (!cs && (flags & MY_WME))

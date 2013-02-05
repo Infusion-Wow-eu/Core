@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2013 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -135,13 +136,13 @@ struct Yells
 
 enum YellId
 {
-    ATTACKED     = 0,                                       // Used when attacked and set in combat
-    BEGIN        = 1,                                       // Used when the event is begun
-    INCOMING     = 2,                                       // Used to warn the raid that another wave phase is coming
-    RALLY        = 3,                                       // Used to rally the raid and warn that the next wave has been summoned
-    FAILURE      = 4,                                       // Used when raid has failed (unsure where to place)
-    SUCCESS      = 5,                                       // Used when the raid has sucessfully defeated a wave phase
-    DEATH        = 6,                                       // Used on death
+    ATTACKED     = 0,                                      // Used when attacked and set in combat
+    BEGIN        = 1,                                      // Used when the event is begun
+    INCOMING     = 2,                                      // Used to warn the raid that another wave phase is coming
+    RALLY        = 3,                                      // Used to rally the raid and warn that the next wave has been summoned
+    FAILURE      = 4,                                      // Used when raid has failed (unsure where to place)
+    SUCCESS      = 5,                                      // Used when the raid has sucessfully defeated a wave phase
+    DEATH        = 6,                                      // Used on death
 };
 
 const Yells JainaQuotes[]=
@@ -172,7 +173,7 @@ const Yells ThrallQuotes[]=
 
 struct hyjalAI : public npc_escortAI
 {
-    hyjalAI(Creature* creature);
+    hyjalAI(Creature* c);
 
     void Reset();                                           // Generically used to reset our variables. Do *not* call in EnterEvadeMode as this may make problems if the raid is still in combat
 
@@ -261,5 +262,5 @@ struct hyjalAI : public npc_escortAI
         uint32 SpellTimer[3];
         //std::list<uint64> CreatureList;
 };
-
 #endif
+

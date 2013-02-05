@@ -213,7 +213,7 @@ static void check_locks(THR_LOCK *lock, const char *where,
 	found_errors++;
 	fprintf(stderr,
 		"Warning at '%s': Locks read_no_write_count was %u when it should have been %u\n", where, lock->read_no_write_count,count);
-      }      
+      }
 
       if (!lock->write.data)
       {
@@ -248,13 +248,13 @@ static void check_locks(THR_LOCK *lock, const char *where,
 	    fprintf(stderr,
 		    "Warning at '%s': Write lock %d waiting while no exclusive read locks\n",where,(int) lock->write_wait.data->type);
 	  }
-	}	      
+	}
       }
       else
       {						/* Have write lock */
 	if (lock->write_wait.data)
 	{
-	  if (!allow_no_locks && 
+	  if (!allow_no_locks &&
 	      lock->write.data->type == TL_WRITE_ALLOW_WRITE &&
 	      lock->write_wait.data->type == TL_WRITE_ALLOW_WRITE)
 	  {
@@ -563,7 +563,6 @@ thr_lock(THR_LOCK_DATA *data, THR_LOCK_INFO *owner,
            ||\ = READ_HIGH_PRIORITY
            |\  = READ_WITH_SHARED_LOCKS
            \   = READ
-          
 
         + = Request can be satisified.
         - = Request cannot be satisified.
@@ -794,7 +793,7 @@ static inline void free_all_read_locks(THR_LOCK *lock,
       if (using_concurrent_insert)
       {
 	/*
-	  We can't free this lock; 
+	  We can't free this lock;
 	  Link lock away from read chain back into read_wait chain
 	*/
 	if (((*data->prev)=data->next))
@@ -807,7 +806,7 @@ static inline void free_all_read_locks(THR_LOCK *lock,
 	continue;
       }
       lock->read_no_write_count++;
-    }      
+    }
     /* purecov: begin inspected */
     DBUG_PRINT("lock",("giving read lock to thread: 0x%lx",
 		       data->owner->thread_id));
@@ -840,7 +839,7 @@ void thr_unlock(THR_LOCK_DATA *data)
   else if (lock_type == TL_WRITE_DELAYED && data->cond)
   {
     /*
-      This only happens in extreme circumstances when a 
+      This only happens in extreme circumstances when a
       write delayed lock that is waiting for a lock
     */
     lock->write_wait.last=data->prev;		/* Put it on wait queue */

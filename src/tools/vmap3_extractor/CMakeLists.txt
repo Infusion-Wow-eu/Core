@@ -1,5 +1,8 @@
-# Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
-# Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+# Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+#
+# Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+#
+# Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
 #
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without
@@ -34,9 +37,9 @@ endif ()
 add_executable(vmap3extractor ${sources})
 
 target_link_libraries(vmap3extractor
-  mpq
   ${BZIP2_LIBRARIES}
   ${ZLIB_LIBRARIES}
+  mpq
 )
 
 add_dependencies(vmap3extractor mpq)

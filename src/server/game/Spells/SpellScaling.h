@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2010 - 2013 Project SkyFire <http://www.projectskyfire.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -27,7 +27,7 @@ class SpellInfo;
 
 class SpellScaling
 {
-    bool  _canScale;
+    bool _canScale;
     int32 _castTime;
 
 public:
@@ -36,24 +36,30 @@ public:
     float max[3];
     float pts[3];
 
-    bool  CanUseScale() { return _canScale; }
-    int32 GetCastTime() { return _castTime; }
+    bool CanUseScale ()
+    {
+        return _canScale;
+    }
+    int32 GetCastTime ()
+    {
+        return _castTime;
+    }
 
-    float GetGtSpellScalingValue(int8 classId, uint8 level)
+    float GetGtSpellScalingValue (int8 classId, uint8 level)
     {
         classId = classId < 0 ? MAX_CLASSES : classId;
 
         float _coef = -1.0f;
         if (classId)
         {
-            GtSpellScalingEntry const* spellscaling = sGtSpellScalingStore.LookupEntry(((classId - 1) * 100) + (level - 1));
+            GtSpellScalingEntry const* spellscaling = sGtSpellScalingStore.LookupEntry((classId - 1) * 100 + level);
             _coef = spellscaling ? spellscaling->coef : _coef;
         }
 
         return _coef;
     }
 
-    SpellScaling(SpellInfo const* spellInfo, uint8 level)
+    SpellScaling (SpellInfo const* spellInfo, uint8 level)
     {
         _canScale = false;
         _castTime = 0;
@@ -101,12 +107,12 @@ public:
 
             avg[effIndex] = mult * gtCoef;
             if (castTimeMax > 0)
-                avg[effIndex] *= float(_castTime)/float(castTimeMax);
+                avg[effIndex] *= float(_castTime) / float(castTimeMax);
 
             min[effIndex] = roundf(avg[effIndex]) - std::floor(avg[effIndex] * randommult / 2);
             max[effIndex] = roundf(avg[effIndex]) + std::floor(avg[effIndex] * randommult / 2);
             pts[effIndex] = roundf(othermult * gtCoef);
-            avg[effIndex] = std::max((float)ceil(mult), roundf(avg[effIndex]));
+            avg[effIndex] = std::max((float) ceil(mult), roundf(avg[effIndex]));
         }
 
         _canScale = true;

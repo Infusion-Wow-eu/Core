@@ -97,7 +97,7 @@ static uchar sort_order_latin1[] = {
 
 /*
   WL#1494 notes:
-  
+
   We'll use cp1252 instead of iso-8859-1.
   cp1252 contains printable characters in the range 0x80-0x9F.
   In ISO 8859-1, these code points have no associated printable
@@ -105,7 +105,7 @@ static uchar sort_order_latin1[] = {
   one would lose the euro (for instance). Since most people are
   unaware of the difference, and since we don't really want a
   "Windows ANSI" to differ from a "Unix ANSI", we will:
-   
+
    - continue to pretend the latin1 character set is ISO 8859-1
    - actually allow the storage of euro etc. so it's actually cp1252
 
@@ -364,7 +364,7 @@ int my_mb_wc_latin1(CHARSET_INFO *cs  __attribute__((unused)),
 {
   if (str >= end)
     return MY_CS_TOOSMALL;
-  
+
   *wc=cs_to_uni[*str];
   return (!wc[0] && str[0]) ? -1 : 1;
 }
@@ -376,10 +376,10 @@ int my_wc_mb_latin1(CHARSET_INFO *cs  __attribute__((unused)),
 		    uchar *end __attribute__((unused)))
 {
   uchar *pl;
-  
+
   if (str >= end)
     return MY_CS_TOOSMALL;
-  
+
   pl= uni_to_cs[(wc>>8) & 0xFF];
   str[0]= pl ? pl[wc & 0xFF] : '\0';
   return (!str[0] && wc) ? MY_CS_ILUNI : 1;
@@ -766,4 +766,3 @@ CHARSET_INFO my_charset_latin1_bin=
   &my_charset_handler,
   &my_collation_8bit_bin_handler
 };
-

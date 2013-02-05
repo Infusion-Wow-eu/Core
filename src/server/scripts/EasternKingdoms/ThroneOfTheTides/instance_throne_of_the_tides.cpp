@@ -1,18 +1,22 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
+ * Copyright (C) 2011 True Blood <http://www.trueblood-servers.com/>
+ * By Asardial
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #include "ScriptPCH.h"
@@ -62,18 +66,18 @@ class instance_throne_of_the_tides : public InstanceMapScript
                 for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
                    encounter[i] = NOT_STARTED;
 
-                LadyNazjar              = 0;
-                JellyFishElevator      = 0;
-                CommanderUlthok         = 0;
-                ErunakStonespeaker      = 0;
-                MindbenderGhursha       = 0;
-                Ozumat                  = 0;
-                Neptulon                = 0;
+                LadyNazjar = 0;
+                JellyFishElevator = 0;
+                CommanderUlthok = 0;
+                ErunakStonespeaker = 0;
+                MindbenderGhursha = 0;
+                Ozumat = 0;
+                Neptulon = 0;
 
-                LadyNazjarDoor          = 0;
-                CommanderUlthokDoor     = 0;
-                ErunakStonespeakerDoor  = 0;
-                OzumatDoor              = 0;
+                LadyNazjarDoor = 0;
+                CommanderUlthokDoor = 0;
+                ErunakStonespeakerDoor = 0;
+                OzumatDoor = 0;
             }
 
             bool IsEncounterInProgress() const
@@ -198,10 +202,10 @@ class instance_throne_of_the_tides : public InstanceMapScript
             {
                 switch(type)
                 {
-                    case DATA_LADY_NAZJAR_EVENT:               return encounter[0];
-                    case DATA_COMMANDER_ULTHOK_EVENT:          return encounter[1];
-                    case DATA_ERUNAK_STONESPEAKER_EVENT:       return encounter[2];
-                    case DATA_OZUMAT_EVENT:                    return encounter[3];
+                    case DATA_LADY_NAZJAR_EVENT: return encounter[0];
+                    case DATA_COMMANDER_ULTHOK_EVENT: return encounter[1];
+                    case DATA_ERUNAK_STONESPEAKER_EVENT: return encounter[2];
+                    case DATA_OZUMAT_EVENT: return encounter[3];
                 }
                 return 0;
             }
@@ -210,12 +214,12 @@ class instance_throne_of_the_tides : public InstanceMapScript
             {
                 switch(identifier)
                 {
-                    case DATA_LADY_NAZJAR:             return LadyNazjar;
-                    case DATA_COMMANDER_ULTHOK:        return CommanderUlthok;
-                    case DATA_ERUNAK_STONESPEAKER:     return ErunakStonespeaker;
-                    case BOSS_MINDBENDER_GHURSHA:      return MindbenderGhursha;
-                    case DATA_OZUMAT:                  return Ozumat;
-                    case DATA_NEPTULON:                return Neptulon;
+                    case DATA_LADY_NAZJAR: return LadyNazjar;
+                    case DATA_COMMANDER_ULTHOK: return CommanderUlthok;
+                    case DATA_ERUNAK_STONESPEAKER: return ErunakStonespeaker;
+                    case BOSS_MINDBENDER_GHURSHA: return MindbenderGhursha;
+                    case DATA_OZUMAT: return Ozumat;
+                    case DATA_NEPTULON: return Neptulon;
                 }
                 return 0;
             }

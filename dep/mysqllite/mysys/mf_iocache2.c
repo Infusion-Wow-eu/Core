@@ -82,7 +82,7 @@ my_off_t my_b_append_tell(IO_CACHE* info)
     Prevent optimizer from putting res in a register when debugging
     we need this to be able to see the value of res when the assert fails
   */
-  dbug_volatile my_off_t res; 
+  dbug_volatile my_off_t res;
 
   /*
     We need to lock the append buffer mutex to keep flush_io_cache()
@@ -108,7 +108,7 @@ my_off_t my_b_append_tell(IO_CACHE* info)
 		== (res=my_tell(info->file,MYF(0))));
     my_seek(info->file,save_pos,MY_SEEK_SET,MYF(0));
   }
-#endif  
+#endif
   res = info->end_of_file + (info->write_pos-info->append_read_pos);
   mysql_mutex_unlock(&info->append_buffer_lock);
   return res;
@@ -318,7 +318,7 @@ size_t my_b_vprintf(IO_CACHE *info, const char* fmt, va_list args)
     /* Copy everything until '%' or end of string */
     const char *start=fmt;
     size_t length;
-    
+
     for (; (*fmt != '\0') && (*fmt != '%'); fmt++) ;
 
     length= (size_t) (fmt - start);
@@ -329,9 +329,9 @@ size_t my_b_vprintf(IO_CACHE *info, const char* fmt, va_list args)
     if (*fmt == '\0')				/* End of format */
       return out_length;
 
-    /* 
+    /*
       By this point, *fmt must be a percent;  Keep track of this location and
-      skip over the percent character. 
+      skip over the percent character.
     */
     DBUG_ASSERT(*fmt == '%');
     backtrack= fmt;
@@ -346,7 +346,7 @@ size_t my_b_vprintf(IO_CACHE *info, const char* fmt, va_list args)
 process_flags:
     switch (*fmt)
     {
-      case '-': 
+      case '-':
         minimum_width_sign= -1; fmt++; goto process_flags;
       case '0':
         is_zero_padded= TRUE; fmt++; goto process_flags;
@@ -417,20 +417,16 @@ process_flags:
         length2= (uint) (int10_to_str((long) (uint) iarg,buff,10)- buff);
 
       /* minimum width padding */
-      if (minimum_width > length2) 
+      if (minimum_width > length2)
       {
         char *buffz;
-                    
+
         buffz= my_alloca(minimum_width - length2);
         if (is_zero_padded)
           memset(buffz, '0', minimum_width - length2);
         else
           memset(buffz, ' ', minimum_width - length2);
-        if (my_b_write(info, buffz, minimum_width - length2))
-        {
-          my_afree(buffz);
-          goto err;
-        }
+        my_b_write(info, buffz, minimum_width - length2);
         my_afree(buffz);
       }
 

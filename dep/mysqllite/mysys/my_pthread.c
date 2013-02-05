@@ -84,8 +84,8 @@ struct tm *localtime_r(const time_t *clock, struct tm *res)
 #endif
 
 #if !defined(HAVE_GMTIME_R)
-/* 
-  Reentrant version of standard gmtime() function. 
+/*
+  Reentrant version of standard gmtime() function.
   Needed on some systems which don't implement it.
 */
 
@@ -438,7 +438,7 @@ void my_pthread_attr_getstacksize(pthread_attr_t *connection_attrib,
   0		If we are able successfully lock the mutex.
   EBUSY		Mutex was locked by another thread
   #		Other error number returned by pthread_mutex_trylock()
-		(Not likely)  
+		(Not likely)
 */
 
 int my_pthread_mutex_trylock(pthread_mutex_t *mutex)

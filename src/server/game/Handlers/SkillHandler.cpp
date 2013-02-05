@@ -1,22 +1,28 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "gamePCH.h"
 #include "Common.h"
 #include "DatabaseEnv.h"
 #include "Opcodes.h"
@@ -27,61 +33,120 @@
 #include "ObjectAccessor.h"
 #include "UpdateMask.h"
 
-void WorldSession::HandleLearnTalentOpcode(WorldPacket& recvData)
+void WorldSession::HandleLearnTalentOpcode (WorldPacket & recv_data)
 {
     uint32 talent_id, requested_rank;
-    recvData >> talent_id >> requested_rank;
+    recv_data >> talent_id >> requested_rank;
 
-    if (_player->LearnTalent(talent_id, requested_rank))
-        _player->SendTalentsInfoData(false);
+    _player->LearnTalent(talent_id, requested_rank, true);
+    _player->SendTalentsInfoData(false);
 }
 
-void WorldSession::HandleLearnPreviewTalents(WorldPacket& recvPacket)
+void WorldSession::HandleLearnPreviewTalents (WorldPacket& recvPacket)
 {
-    sLog->outDebug(LOG_FILTER_NETWORKIO, "CMSG_LEARN_PREVIEW_TALENTS");
+    sLog
+    ->outDebug(LOG_FILTER_NETWORKIO, "CMSG_LEARN_PREVIEW_TALENTS");
 
-    int32 tabPage;
+    uint32 spec;
     uint32 talentsCount;
-    recvPacket >> tabPage; // talent tree
+    recvPacket >> spec >> talentsCount;
 
-    // prevent cheating (selecting new tree with points already in another)
-    if (tabPage >= 0) // -1 if player already has specialization
+    if (spec != ((uint32)-1))
     {
-        if (TalentTabEntry const* talentTabEntry = sTalentTabStore.LookupEntry(_player->GetPrimaryTalentTree(_player->GetActiveSpec())))
+        uint32 specID = 0;
+        for (uint32 i = 0; i < sTalentTabStore.GetNumRows(); i++)
         {
-            if (talentTabEntry->tabpage != tabPage)
+            TalentTabEntry const * entry = sTalentTabStore.LookupEntry(i);
+            if (entry)
             {
-                recvPacket.rfinish();
-                return;
+                if (entry->ClassMask == _player->getClassMask() && entry->tabpage == spec)
+                {
+                    specID = entry->TalentTabID;
+                    break;
+                }
             }
         }
-    }
 
-    recvPacket >> talentsCount;
+        if (_player->m_usedTalentCount == 0 || _player->GetTalentBranchSpec(_player->m_activeSpec) == 0)
+        {
+            if (_player->m_usedTalentCount != 0)
+            _player->resetTalents();
 
-    uint32 talentId, talentRank;
+            _player->SetTalentBranchSpec(specID, _player->m_activeSpec);
+            for (uint32 i = 0; i < sTalentTreePrimarySpellsStore.GetNumRows(); ++i)
+            {
+                TalentTreePrimarySpellsEntry const *talentInfo = sTalentTreePrimarySpellsStore.LookupEntry(i);
+
+                if (!talentInfo || talentInfo->TalentTabID != specID)
+                continue;
+
+                _player->learnSpell(talentInfo->SpellID, false);
+            }
+        }
+        else if (_player->GetTalentBranchSpec(_player->m_activeSpec) != specID)          //cheat
+            return;
+        }
+
+        uint32 talentId, talentRank;
 
     for (uint32 i = 0; i < talentsCount; ++i)
     {
         recvPacket >> talentId >> talentRank;
 
-        if (!_player->LearnTalent(talentId, talentRank))
+        _player->LearnTalent(talentId, talentRank, false);
+    }
+
+    bool inOtherBranch = false;
+    uint32 pointInBranchSpec = 0;
+    for (PlayerTalentMap::iterator itr = _player->m_talents[_player->m_activeSpec]->begin(); itr != _player->m_talents[_player->m_activeSpec]->end(); itr++)
+    {
+        for (uint32 i = 0; i < sTalentStore.GetNumRows(); i++)
         {
-            recvPacket.rfinish();
-            break;
+            const TalentEntry * thisTalent = sTalentStore.LookupEntry(i);
+            if (thisTalent)
+            {
+                int thisrank = -1;
+                for (int j = 0; j < 5; j++)
+                if (thisTalent->RankID[j] == itr->first)
+                {
+                    thisrank = j;
+                    break;
+                }
+                if (thisrank != -1)
+                {
+                    if (thisTalent->TalentTab == _player->GetTalentBranchSpec(_player->m_activeSpec))
+                    {
+                        int8 curtalent_maxrank = -1;
+                        for (int8 rank = MAX_TALENT_RANK-1; rank >= 0; --rank)
+                        {
+                            if (thisTalent->RankID[rank] && _player->HasTalent(thisTalent->RankID[rank], _player->m_activeSpec))
+                            {
+                                curtalent_maxrank = rank;
+                                break;
+                            }
+                        }
+                        if (curtalent_maxrank != -1 && thisrank == curtalent_maxrank)
+                        pointInBranchSpec += curtalent_maxrank + 1;
+                    }
+                    else
+                    inOtherBranch = true;
+                }
+            }
         }
     }
+    if (inOtherBranch && pointInBranchSpec < 31)
+    _player->resetTalents();
 
     _player->SendTalentsInfoData(false);
 }
 
-void WorldSession::HandleTalentWipeConfirmOpcode(WorldPacket& recvData)
+void WorldSession::HandleTalentWipeConfirmOpcode (WorldPacket & recv_data)
 {
     sLog->outDetail("MSG_TALENT_WIPE_CONFIRM");
     uint64 guid;
-    recvData >> guid;
+    recv_data >> guid;
 
-    Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_TRAINER);
+    Creature *unit = GetPlayer()->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_TRAINER);
     if (!unit)
     {
         sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: HandleTalentWipeConfirmOpcode - Unit (GUID: %u) not found or you can't interact with him.", uint32(GUID_LOPART(guid)));
@@ -89,12 +154,12 @@ void WorldSession::HandleTalentWipeConfirmOpcode(WorldPacket& recvData)
     }
 
     // remove fake death
-    if (GetPlayer()->HasUnitState(UNIT_STATE_DIED))
+    if (GetPlayer()->HasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveAurasByType(SPELL_AURA_FEIGN_DEATH);
 
-    if (!(_player->ResetTalents()))
+    if (!(_player->resetTalents()))
     {
-        WorldPacket data(MSG_TALENT_WIPE_CONFIRM, 8+4);    //you do not have any talents
+        WorldPacket data(MSG_TALENT_WIPE_CONFIRM, 8 + 4);          //you have not any talent
         data << uint64(0);
         data << uint32(0);
         SendPacket(&data);
@@ -102,12 +167,12 @@ void WorldSession::HandleTalentWipeConfirmOpcode(WorldPacket& recvData)
     }
 
     _player->SendTalentsInfoData(false);
-    unit->CastSpell(_player, 14867, true);                  //spell: "Untalented Visual Effect"
+    unit->CastSpell(_player, 14867, true);          //spell: "Untalent Visual Effect"
 }
 
-void WorldSession::HandleUnlearnSkillOpcode(WorldPacket& recvData)
+void WorldSession::HandleUnlearnSkillOpcode (WorldPacket & recv_data)
 {
     uint32 skill_id;
-    recvData >> skill_id;
+    recv_data >> skill_id;
     GetPlayer()->SetSkill(skill_id, 0, 0, 0);
 }

@@ -1,37 +1,44 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "gamePCH.h"
 /** \file
-    \ingroup u2w
-*/
+ \ingroup u2w
+ */
 
 #include "WorldLog.h"
 #include "Config.h"
 #include "Log.h"
 #include "DatabaseWorkerPool.h"
 
-WorldLog::WorldLog() : i_file(NULL)
+WorldLog::WorldLog () :
+        i_file(NULL)
 {
     Initialize();
 }
 
-WorldLog::~WorldLog()
+WorldLog::~WorldLog ()
 {
     if (i_file != NULL)
         fclose(i_file);
@@ -39,30 +46,30 @@ WorldLog::~WorldLog()
 }
 
 /// Open the log file (if specified so in the configuration file)
-void WorldLog::Initialize()
+void WorldLog::Initialize ()
 {
-    std::string logsDir = ConfigMgr::GetStringDefault("LogsDir", "");
+    std::string logsDir = sConfig->GetStringDefault("LogsDir", "");
 
     if (!logsDir.empty())
     {
-        if ((logsDir.at(logsDir.length()-1) != '/') && (logsDir.at(logsDir.length()-1) != '\\'))
-            logsDir.push_back('/');
+        if ((logsDir.at(logsDir.length() - 1) != '/') && (logsDir.at(logsDir.length() - 1) != '\\'))
+            logsDir.append("/");
     }
 
-    std::string logname = ConfigMgr::GetStringDefault("WorldLogFile", "");
+    std::string logname = sConfig->GetStringDefault("WorldLogFile", "");
     if (!logname.empty())
     {
-        i_file = fopen((logsDir+logname).c_str(), "w");
+        i_file = fopen((logsDir + logname).c_str(), "w");
     }
 
-    m_dbWorld = ConfigMgr::GetBoolDefault("LogDB.World", false); // can be VERY heavy if enabled
+    m_dbWorld = sConfig->GetBoolDefault("LogDB.World", false);          // can be VERY heavy if enabled
 }
 
-void WorldLog::outTimestampLog(char const* fmt, ...)
+void WorldLog::outTimestampLog (char const *fmt, ...)
 {
     if (LogWorld())
     {
-        SKYFIRE_GUARD(ACE_Thread_Mutex, Lock);
+        ACE_GUARD(ACE_Thread_Mutex, Guard, Lock);
         ASSERT(i_file);
 
         Log::outTimestamp(i_file);
@@ -86,11 +93,11 @@ void WorldLog::outTimestampLog(char const* fmt, ...)
     }
 }
 
-void WorldLog::outLog(char const* fmt, ...)
+void WorldLog::outLog (char const *fmt, ...)
 {
     if (LogWorld())
     {
-        SKYFIRE_GUARD(ACE_Thread_Mutex, Lock);
+        ACE_GUARD(ACE_Thread_Mutex, Guard, Lock);
         ASSERT(i_file);
 
         va_list args;

@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -34,16 +37,16 @@ class instance_gundrak : public InstanceMapScript
 public:
     instance_gundrak() : InstanceMapScript("instance_gundrak", 604) { }
 
-    InstanceScript* GetInstanceScript(InstanceMap* map) const
+    InstanceScript* GetInstanceScript(InstanceMap* pMap) const
     {
-        return new instance_gundrak_InstanceMapScript(map);
+        return new instance_gundrak_InstanceMapScript(pMap);
     }
 
     struct instance_gundrak_InstanceMapScript : public InstanceScript
     {
-        instance_gundrak_InstanceMapScript(Map* map) : InstanceScript(map)
+        instance_gundrak_InstanceMapScript(Map* pMap) : InstanceScript(pMap)
         {
-            bHeroicMode = map->IsHeroic();
+            bHeroicMode = pMap->IsHeroic();
         }
 
         bool bHeroicMode;
@@ -137,7 +140,7 @@ public:
             return false;
         }
 
-        void OnCreatureCreate(Creature* creature)
+        void OnCreatureCreate(Creature* creature, bool /*add*/)
         {
             switch (creature->GetEntry())
             {
@@ -153,7 +156,7 @@ public:
             }
         }
 
-        void OnGameObjectCreate(GameObject* go)
+        void OnGameObjectCreate(GameObject* go, bool /*add*/)
         {
             switch (go->GetEntry())
             {
@@ -418,99 +421,99 @@ public:
             OUT_LOAD_INST_DATA_COMPLETE;
         }
 
-        void Update(uint32 diff)
-        {
-            // Spawn the support for the bridge if necessary
-            if (spawnSupport)
-            {
-                if (GameObject* pCollision = instance->GetGameObject(uiCollision))
-                    pCollision->SummonGameObject(192743, pCollision->GetPositionX(), pCollision->GetPositionY(), pCollision->GetPositionZ(), pCollision->GetOrientation(), 0, 0, 0, 0, 0);
-                spawnSupport = false;
-            }
+         void Update(uint32 diff)
+         {
+             // Spawn the support for the bridge if necessary
+             if (spawnSupport)
+             {
+                 if (GameObject* pCollision = instance->GetGameObject(uiCollision))
+                     pCollision->SummonGameObject(192743, pCollision->GetPositionX(), pCollision->GetPositionY(), pCollision->GetPositionZ(), pCollision->GetOrientation(), 0, 0, 0, 0, 0);
+                 spawnSupport = false;
+             }
 
-            // If there is nothing to activate, then return
-            if (!toActivate)
-                return;
+             // If there is nothing to activate, then return
+             if (!toActivate)
+                 return;
 
-            if (timer < diff)
-            {
-                timer = 0;
-                if (toActivate == uiBridge)
-                {
-                    GameObject* pBridge = instance->GetGameObject(uiBridge);
-                    GameObject* pCollision = instance->GetGameObject(uiCollision);
-                    GameObject* pSladRanStatue = instance->GetGameObject(uiSladRanStatue);
-                    GameObject* pMoorabiStatue = instance->GetGameObject(uiMoorabiStatue);
-                    GameObject* pDrakkariColossusStatue = instance->GetGameObject(uiDrakkariColossusStatue);
-                    GameObject* pGalDarahStatue = instance->GetGameObject(uiGalDarahStatue);
+             if (timer < diff)
+             {
+                 timer = 0;
+                 if (toActivate == uiBridge)
+                 {
+                     GameObject* pBridge = instance->GetGameObject(uiBridge);
+                     GameObject* pCollision = instance->GetGameObject(uiCollision);
+                     GameObject* pSladRanStatue = instance->GetGameObject(uiSladRanStatue);
+                     GameObject* pMoorabiStatue = instance->GetGameObject(uiMoorabiStatue);
+                     GameObject* pDrakkariColossusStatue = instance->GetGameObject(uiDrakkariColossusStatue);
+                     GameObject* pGalDarahStatue = instance->GetGameObject(uiGalDarahStatue);
 
-                    toActivate = 0;
+                     toActivate = 0;
 
-                    if (pBridge && pCollision && pSladRanStatue && pMoorabiStatue && pDrakkariColossusStatue && pGalDarahStatue)
-                    {
-                        pBridge->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        pCollision->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        pSladRanStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        pMoorabiStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        pDrakkariColossusStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-                        pGalDarahStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                     if (pBridge && pCollision && pSladRanStatue && pMoorabiStatue && pDrakkariColossusStatue && pGalDarahStatue)
+                     {
+                         pBridge->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                         pCollision->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                         pSladRanStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                         pMoorabiStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                         pDrakkariColossusStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+                         pGalDarahStatue->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
 
-                        // Add the GO that solidifies the bridge so you can walk on it
-                        spawnSupport = true;
-                        SaveToDB();
-                    }
-                }
-                else
-                {
-                    uint32 spell = 0;
-                    GameObject* pAltar = NULL;
-                    if (toActivate == uiSladRanStatue)
-                    {
-                        spell = 57071;
-                        pAltar = instance->GetGameObject(uiSladRanAltar);
-                    }
-                    else if (toActivate == uiMoorabiStatue)
-                    {
-                        spell = 57068;
-                        pAltar = instance->GetGameObject(uiMoorabiAltar);
-                    }
-                    else if (toActivate == uiDrakkariColossusStatue)
-                    {
-                        spell = 57072;
-                        pAltar = instance->GetGameObject(uiDrakkariColossusAltar);
-                    }
+                         // Add the GO that solidifies the bridge so you can walk on it
+                         spawnSupport = true;
+                         SaveToDB();
+                     }
+                 }
+                 else
+                 {
+                     uint32 spell = 0;
+                     GameObject* pAltar = NULL;
+                     if (toActivate == uiSladRanStatue)
+                     {
+                         spell = 57071;
+                         pAltar = instance->GetGameObject(uiSladRanAltar);
+                     }
+                     else if (toActivate == uiMoorabiStatue)
+                     {
+                         spell = 57068;
+                         pAltar = instance->GetGameObject(uiMoorabiAltar);
+                     }
+                     else if (toActivate == uiDrakkariColossusStatue)
+                     {
+                         spell = 57072;
+                         pAltar = instance->GetGameObject(uiDrakkariColossusAltar);
+                     }
 
-                    // This is a workaround to make the beam cast properly. The caster should be ID 30298 but since the spells
-                    // all are with scripted target for that same ID, it will hit itself.
-                    if (pAltar)
-                        if (Creature* trigger = pAltar->SummonCreature(18721, pAltar->GetPositionX(), pAltar->GetPositionY(), pAltar->GetPositionZ() + 3, pAltar->GetOrientation(), TEMPSUMMON_CORPSE_DESPAWN, 5000))
-                        {
-                            // Set the trigger model to invisible
-                            trigger->SetDisplayId(11686);
-                            trigger->CastSpell(trigger, spell, false);
-                        }
+                     // This is a workaround to make the beam cast properly. The caster should be ID 30298 but since the spells
+                     // all are with scripted target for that same ID, it will hit itself.
+                     if (pAltar)
+                         if (Creature* trigger = pAltar->SummonCreature(18721, pAltar->GetPositionX(), pAltar->GetPositionY(), pAltar->GetPositionZ() + 3, pAltar->GetOrientation(), TEMPSUMMON_CORPSE_DESPAWN, 5000))
+                         {
+                             // Set the trigger model to invisible
+                             trigger->SetDisplayId(11686);
+                             trigger->CastSpell(trigger, spell, false);
+                         }
 
-                    if (GameObject* statueGO = instance->GetGameObject(toActivate))
-                        statueGO->SetGoState(GO_STATE_READY);
+                     if (GameObject* statueGO = instance->GetGameObject(toActivate))
+                         statueGO->SetGoState(GO_STATE_READY);
 
-                    toActivate = 0;
+                     toActivate = 0;
 
-                    if (phase == 3)
-                        SetData64(DATA_STATUE_ACTIVATE, uiBridge);
-                    else
-                        SaveToDB(); // Don't save in between last statue and bridge turning in case of crash leading to stuck instance
+                     if (phase == 3)
+                         SetData64(DATA_STATUE_ACTIVATE, uiBridge);
+                     else
+                         SaveToDB(); // Don't save in between last statue and bridge turning in case of crash leading to stuck instance
                 }
             }
             else
                 timer -= diff;
         }
 
-        GOState GetObjState(uint64 guid)
-        {
-            if (GameObject* go = instance->GetGameObject(guid))
-                return go->GetGoState();
-            return GO_STATE_ACTIVE;
-        }
+         GOState GetObjState(uint64 guid)
+         {
+             if (GameObject* go = instance->GetGameObject(guid))
+                 return go->GetGoState();
+             return GO_STATE_ACTIVE;
+         }
     };
 };
 
@@ -519,34 +522,34 @@ class go_gundrak_altar : public GameObjectScript
 public:
     go_gundrak_altar() : GameObjectScript("go_gundrak_altar") { }
 
-    bool OnGossipHello(Player* /*player*/, GameObject* go)
+    bool OnGossipHello(Player * /*player*/, GameObject *pGO)
     {
-        InstanceScript* instance = go->GetInstanceScript();
+        InstanceScript* pInstance = pGO->GetInstanceScript();
         uint64 uiStatue = 0;
 
-        go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-        go->SetGoState(GO_STATE_ACTIVE);
+        pGO->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+        pGO->SetGoState(GO_STATE_ACTIVE);
 
-        if (instance)
+        if (pInstance)
         {
-            switch (go->GetEntry())
+            switch (pGO->GetEntry())
             {
                 case 192518:
-                    uiStatue = instance->GetData64(DATA_SLAD_RAN_STATUE);
+                    uiStatue = pInstance->GetData64(DATA_SLAD_RAN_STATUE);
                     break;
                 case 192519:
-                    uiStatue = instance->GetData64(DATA_MOORABI_STATUE);
+                    uiStatue = pInstance->GetData64(DATA_MOORABI_STATUE);
                     break;
                 case 192520:
-                    uiStatue = instance->GetData64(DATA_DRAKKARI_COLOSSUS_STATUE);
+                    uiStatue = pInstance->GetData64(DATA_DRAKKARI_COLOSSUS_STATUE);
                     break;
             }
 
-            if (!instance->GetData64(DATA_STATUE_ACTIVATE))
+            if (!pInstance->GetData64(DATA_STATUE_ACTIVATE))
             {
-                instance->SetData64(DATA_STATUE_ACTIVATE, uiStatue);
-                go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
-                go->SetGoState(GO_STATE_ACTIVE);
+                pInstance->SetData64(DATA_STATUE_ACTIVATE, uiStatue);
+                pGO->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+                pGO->SetGoState(GO_STATE_ACTIVE);
             }
             return true;
         }

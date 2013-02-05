@@ -68,6 +68,6 @@ File my_create(const char *FileName, int CreateFlags, int access_flags,
     my_delete(FileName, MyFlags);
     my_errno= tmp;
   }
-  
+
   DBUG_RETURN(rc);
 } /* my_create */

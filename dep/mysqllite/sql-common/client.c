@@ -1,4 +1,4 @@
-/* Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,13 +25,13 @@
   - Support for reading local file with LOAD DATA LOCAL
   - SHARED memory handling
   - Prepared statements
-  
+
   - Things that only works for the server
   - Alarm handling on connect
-  
+
   In all other cases, the code should be idential for the client and
   server.
-*/ 
+*/
 
 #include <my_global.h>
 
@@ -260,11 +260,11 @@ static int wait_for_data(my_socket fd, uint timeout)
     If select() returns 0 (after waiting howevermany seconds), our socket
     never became writable (host is probably unreachable.)  Otherwise, if
     select() returns 1, then one of two conditions exist:
-   
+
     1. An error occured.  We use getsockopt() to check for this.
     2. The connection was set up sucessfully: getsockopt() will
     return 0 as an error.
-   
+
     Thanks goes to Andrew Gierth <andrew@erlenstar.demon.co.uk>
     who posted this method of timing out a connect() in
     comp.unix.programmer on August 15th, 1997.
@@ -273,9 +273,9 @@ static int wait_for_data(my_socket fd, uint timeout)
   FD_ZERO(&sfds);
   FD_SET(fd, &sfds);
   /*
-    select could be interrupted by a signal, and if it is, 
+    select could be interrupted by a signal, and if it is,
     the timeout should be adjusted and the select restarted
-    to work around OSes that don't restart select and 
+    to work around OSes that don't restart select and
     implementations of select that don't adjust tv upon
     failure to reflect the time remaining
    */
@@ -416,7 +416,6 @@ HANDLE create_named_pipe(MYSQL *mysql, uint connect_timeout, char **arg_host,
   if (!host || !strcmp(host,LOCAL_HOST))
     host=LOCAL_HOST_NAMEDPIPE;
 
-  
   pipe_name[sizeof(pipe_name)-1]= 0;		/* Safety if too long string */
   strxnmov(pipe_name, sizeof(pipe_name)-1, "\\\\", host, "\\pipe\\",
 	   unix_socket, NullS);
@@ -717,7 +716,7 @@ err:
 
   @retval  packet_error    An error occurred during reading.
                            Error message is set.
-  @retval  
+  @retval
 */
 
 ulong
@@ -923,7 +922,7 @@ my_bool flush_one_result(MYSQL *mysql)
 /**
   Read a packet from network. If it's an OK packet, flush it.
 
-  @return  TRUE if error, FALSE otherwise. In case of 
+  @return  TRUE if error, FALSE otherwise. In case of
            success, is_ok_packet is set to TRUE or FALSE,
            based on what we got from network.
 */
@@ -1041,7 +1040,7 @@ static int check_license(MYSQL *mysql)
   if (!(res= mysql_use_result(mysql)))
     return 1;
   row= mysql_fetch_row(res);
-  /* 
+  /*
     If no rows in result set, or column value is NULL (none of these
     two is ever true for server variables now), or column value
     mismatch, set wrong license error.
@@ -1124,20 +1123,18 @@ static const char *default_options[]=
   "connect-timeout", "local-infile", "disable-local-infile",
   "ssl-cipher", "max-allowed-packet", "protocol", "shared-memory-base-name",
   "multi-results", "multi-statements", "multi-queries", "secure-auth",
-  "report-data-truncation", "plugin-dir", "default-auth", 
-  "enable-cleartext-plugin",
+  "report-data-truncation", "plugin-dir", "default-auth",
   NullS
 };
 enum option_id {
-  OPT_port=1, OPT_socket, OPT_compress, OPT_password, OPT_pipe, OPT_timeout, OPT_user, 
-  OPT_init_command, OPT_host, OPT_database, OPT_debug, OPT_return_found_rows, 
-  OPT_ssl_key, OPT_ssl_cert, OPT_ssl_ca, OPT_ssl_capath, 
-  OPT_character_sets_dir, OPT_default_character_set, OPT_interactive_timeout, 
-  OPT_connect_timeout, OPT_local_infile, OPT_disable_local_infile, 
-  OPT_ssl_cipher, OPT_max_allowed_packet, OPT_protocol, OPT_shared_memory_base_name, 
-  OPT_multi_results, OPT_multi_statements, OPT_multi_queries, OPT_secure_auth, 
-  OPT_report_data_truncation, OPT_plugin_dir, OPT_default_auth, 
-  OPT_enable_cleartext_plugin,
+  OPT_port=1, OPT_socket, OPT_compress, OPT_password, OPT_pipe, OPT_timeout, OPT_user,
+  OPT_init_command, OPT_host, OPT_database, OPT_debug, OPT_return_found_rows,
+  OPT_ssl_key, OPT_ssl_cert, OPT_ssl_ca, OPT_ssl_capath,
+  OPT_character_sets_dir, OPT_default_character_set, OPT_interactive_timeout,
+  OPT_connect_timeout, OPT_local_infile, OPT_disable_local_infile,
+  OPT_ssl_cipher, OPT_max_allowed_packet, OPT_protocol, OPT_shared_memory_base_name,
+  OPT_multi_results, OPT_multi_statements, OPT_multi_queries, OPT_secure_auth,
+  OPT_report_data_truncation, OPT_plugin_dir, OPT_default_auth,
   OPT_keep_this_one_last
 };
 
@@ -1170,26 +1167,14 @@ static int add_init_command(struct st_mysql_options *options, const char *cmd)
   return 0;
 }
 
-#define ALLOCATE_EXTENSIONS(OPTS)                                \
+#define EXTENSION_SET_STRING(OPTS, X, STR)                       \
+    if ((OPTS)->extension)                                       \
+      my_free((OPTS)->extension->X);     \
+    else                                                         \
       (OPTS)->extension= (struct st_mysql_options_extention *)   \
         my_malloc(sizeof(struct st_mysql_options_extention),     \
-                  MYF(MY_WME | MY_ZEROFILL))                     \
-
-#define ENSURE_EXTENSIONS_PRESENT(OPTS)                          \
-    do {                                                         \
-      if (!(OPTS)->extension)                                    \
-        ALLOCATE_EXTENSIONS(OPTS);                               \
-    } while (0)
-
-#define EXTENSION_SET_STRING(OPTS, X, STR)                       \
-    do {                                                         \
-      if ((OPTS)->extension)                                     \
-        my_free((OPTS)->extension->X);                           \
-      else                                                       \
-        ALLOCATE_EXTENSIONS(OPTS);                               \
-      (OPTS)->extension->X= ((STR) != NULL) ?                    \
-        my_strdup((STR), MYF(MY_WME)) : NULL;                    \
-    } while (0)
+                  MYF(MY_WME | MY_ZEROFILL));                    \
+    (OPTS)->extension->X= my_strdup((STR), MYF(MY_WME));
 
 void mysql_read_default_options(struct st_mysql_options *options,
 				const char *filename,const char *group)
@@ -1388,13 +1373,6 @@ void mysql_read_default_options(struct st_mysql_options *options,
         case OPT_default_auth:
           EXTENSION_SET_STRING(options, default_auth, opt_arg);
           break;
-
-        case OPT_enable_cleartext_plugin:
-          ENSURE_EXTENSIONS_PRESENT(options);
-          options->extension->enable_cleartext_plugin= 
-            (!opt_arg || atoi(opt_arg) != 0) ? TRUE : FALSE;
-          break;
-
 	default:
 	  DBUG_PRINT("warning",("unknown option: %s",option[0]));
 	}
@@ -1413,7 +1391,7 @@ void mysql_read_default_options(struct st_mysql_options *options,
 
 static void cli_fetch_lengths(ulong *to, MYSQL_ROW column,
 			      unsigned int field_count)
-{ 
+{
   ulong *prev_length;
   char *start=0;
   MYSQL_ROW end;
@@ -1438,7 +1416,7 @@ static void cli_fetch_lengths(ulong *to, MYSQL_ROW column,
 ***************************************************************************/
 
 MYSQL_FIELD *
-unpack_fields(MYSQL *mysql, MYSQL_DATA *data,MEM_ROOT *alloc,uint fields,
+unpack_fields(MYSQL_DATA *data,MEM_ROOT *alloc,uint fields,
 	      my_bool default_value, uint server_capabilities)
 {
   MYSQL_ROWS	*row;
@@ -1451,7 +1429,6 @@ unpack_fields(MYSQL *mysql, MYSQL_DATA *data,MEM_ROOT *alloc,uint fields,
   if (!result)
   {
     free_rows(data);				/* Free old data */
-    set_mysql_error(mysql, CR_OUT_OF_MEMORY, unknown_sqlstate);
     DBUG_RETURN(0);
   }
   bzero((char*) field, (uint) sizeof(MYSQL_FIELD)*fields);
@@ -1479,14 +1456,6 @@ unpack_fields(MYSQL *mysql, MYSQL_DATA *data,MEM_ROOT *alloc,uint fields,
       field->org_name_length=	lengths[5];
 
       /* Unpack fixed length parts */
-      if (lengths[6] != 12)
-      {
-        /* malformed packet. signal an error. */
-        free_rows(data);			/* Free old data */
-        set_mysql_error(mysql, CR_MALFORMED_PACKET, unknown_sqlstate);
-        DBUG_RETURN(0);
-      }
-
       pos= (uchar*) row->data[6];
       field->charsetnr= uint2korr(pos);
       field->length=	(uint) uint4korr(pos+2);
@@ -2105,7 +2074,7 @@ const MY_CSET_OS_NAME charsets[]=
   {"Shift_JIS",      "sjis",     my_cs_exact},
   {"SJIS",           "sjis",     my_cs_exact},
   {"shiftjisx0213",  "sjis",     my_cs_exact},
-  
+
   {"tis620",         "tis620",   my_cs_exact},
   {"tis-620",        "tis620",   my_cs_exact},
 
@@ -2206,7 +2175,7 @@ mysql_set_character_set_with_default_collation(MYSQL *mysql)
   {
     /* Try to set compiled default collation when it's possible. */
     CHARSET_INFO *collation;
-    if ((collation= 
+    if ((collation=
          get_charset_by_name(MYSQL_DEFAULT_COLLATION_NAME, MYF(MY_WME))) &&
                              my_charset_same(mysql->charset, collation))
     {
@@ -2230,7 +2199,7 @@ int mysql_init_character_set(MYSQL *mysql)
   /* Set character set */
   if (!mysql->options.charset_name)
   {
-    if (!(mysql->options.charset_name= 
+    if (!(mysql->options.charset_name=
        my_strdup(MYSQL_DEFAULT_CHARSET_NAME,MYF(MY_WME))))
       return 1;
   }
@@ -2356,7 +2325,7 @@ typedef struct {
   sends a COM_CHANGE_USER command with a caller provided payload
 
   Packet format:
-   
+
     Bytes       Content
     -----       ----
     n           user name - \0-terminated string
@@ -2427,7 +2396,7 @@ error:
   sends a client authentication packet (second packet in the 3-way handshake)
 
   Packet format (when the server is 4.0 or earlier):
-   
+
     Bytes       Content
     -----       ----
     2           client capabilities
@@ -2436,7 +2405,7 @@ error:
     9           scramble_323, \0-terminated
 
   Packet format (when the server is 4.1 or newer):
-   
+
     Bytes       Content
     -----       ----
     4           client capabilities
@@ -2462,7 +2431,7 @@ static int send_client_reply_packet(MCPVIO_EXT *mpvio,
 
   /* see end= buff+32 below, fixed size of the packet is 32 bytes */
   buff= my_alloca(33 + USERNAME_LENGTH + data_len + NAME_LEN + NAME_LEN);
-  
+
   mysql->client_flag|= mysql->options.client_flag;
   mysql->client_flag|= CLIENT_CAPABILITIES;
 
@@ -2482,7 +2451,7 @@ static int send_client_reply_packet(MCPVIO_EXT *mpvio,
 
   /* Remove options that server doesn't support */
   mysql->client_flag= mysql->client_flag &
-                       (~(CLIENT_COMPRESS | CLIENT_SSL | CLIENT_PROTOCOL_41) 
+                       (~(CLIENT_COMPRESS | CLIENT_SSL | CLIENT_PROTOCOL_41)
                        | mysql->server_capabilities);
 
 #ifndef HAVE_COMPRESS
@@ -2545,7 +2514,7 @@ static int send_client_reply_packet(MCPVIO_EXT *mpvio,
     DBUG_PRINT("info", ("IO layer change in progress..."));
     if (sslconnect(ssl_fd, net->vio,
                    (long) (mysql->options.connect_timeout), &ssl_error))
-    {    
+    {
       char buf[512];
       ERR_error_string_n(ssl_error, buf, 512);
       buf[511]= 0;
@@ -2553,7 +2522,7 @@ static int send_client_reply_packet(MCPVIO_EXT *mpvio,
                                ER(CR_SSL_CONNECTION_ERROR),
                                buf);
       goto error;
-    }    
+    }
     DBUG_PRINT("info", ("IO layer change done!"));
 
     /* Verify server cert */
@@ -2621,7 +2590,7 @@ static int send_client_reply_packet(MCPVIO_EXT *mpvio,
   }
   my_afree(buff);
   return 0;
-  
+
 error:
   my_afree(buff);
   return 1;
@@ -2774,25 +2743,6 @@ static void client_mpvio_info(MYSQL_PLUGIN_VIO *vio,
   mpvio_info(mpvio->mysql->net.vio, info);
 }
 
-my_bool libmysql_cleartext_plugin_enabled= 0;
-
-static my_bool check_plugin_enabled(MYSQL *mysql, auth_plugin_t *plugin)
-{
-  if (plugin == &clear_password_client_plugin &&
-      (!libmysql_cleartext_plugin_enabled &&
-       (!mysql->options.extension ||
-       !mysql->options.extension->enable_cleartext_plugin)))
-  {
-    set_mysql_extended_error(mysql, CR_AUTH_PLUGIN_CANNOT_LOAD,
-                             unknown_sqlstate,
-                             ER(CR_AUTH_PLUGIN_CANNOT_LOAD),
-                             clear_password_client_plugin.name,
-                             "plugin not enabled");
-    return TRUE;
-  }
-  return FALSE;
-}
-
 /**
   Client side of the plugin driver authentication.
 
@@ -2835,9 +2785,6 @@ int run_plugin_auth(MYSQL *mysql, char *data, uint data_len,
     auth_plugin_name= auth_plugin->name;
   }
 
-  if (check_plugin_enabled(mysql, auth_plugin))
-    DBUG_RETURN(1);
-
   DBUG_PRINT ("info", ("using plugin %s", auth_plugin_name));
 
   mysql->net.last_errno= 0; /* just in case */
@@ -2861,10 +2808,10 @@ int run_plugin_auth(MYSQL *mysql, char *data, uint data_len,
   mpvio.plugin= auth_plugin;
 
   res= auth_plugin->authenticate_user((struct st_plugin_vio *)&mpvio, mysql);
-  DBUG_PRINT ("info", ("authenticate_user returned %s", 
-                       res == CR_OK ? "CR_OK" : 
+  DBUG_PRINT ("info", ("authenticate_user returned %s",
+                       res == CR_OK ? "CR_OK" :
                        res == CR_ERROR ? "CR_ERROR" :
-                       res == CR_OK_HANDSHAKE_COMPLETE ? 
+                       res == CR_OK_HANDSHAKE_COMPLETE ?
                          "CR_OK_HANDSHAKE_COMPLETE" : "error"));
 
   compile_time_assert(CR_OK == -1);
@@ -2906,7 +2853,7 @@ int run_plugin_auth(MYSQL *mysql, char *data, uint data_len,
   {
     /* The server asked to use a different authentication plugin */
     if (pkt_length == 1)
-    { 
+    {
       /* old "use short scramble" packet */
       DBUG_PRINT ("info", ("old use short scramble packet from server"));
       auth_plugin_name= old_password_plugin_name;
@@ -2914,7 +2861,7 @@ int run_plugin_auth(MYSQL *mysql, char *data, uint data_len,
       mpvio.cached_server_reply.pkt_len= SCRAMBLE_LENGTH + 1;
     }
     else
-    { 
+    {
       /* new "use different plugin" packet */
       uint len;
       auth_plugin_name= (char*)mysql->net.read_pos + 1;
@@ -2929,16 +2876,13 @@ int run_plugin_auth(MYSQL *mysql, char *data, uint data_len,
                          auth_plugin_name, MYSQL_CLIENT_AUTHENTICATION_PLUGIN)))
       DBUG_RETURN (1);
 
-    if (check_plugin_enabled(mysql, auth_plugin))
-      DBUG_RETURN(1);
-
     mpvio.plugin= auth_plugin;
     res= auth_plugin->authenticate_user((struct st_plugin_vio *)&mpvio, mysql);
 
-    DBUG_PRINT ("info", ("second authenticate_user returned %s", 
-                         res == CR_OK ? "CR_OK" : 
+    DBUG_PRINT ("info", ("second authenticate_user returned %s",
+                         res == CR_OK ? "CR_OK" :
                          res == CR_ERROR ? "CR_ERROR" :
-                         res == CR_OK_HANDSHAKE_COMPLETE ? 
+                         res == CR_OK_HANDSHAKE_COMPLETE ?
                          "CR_OK_HANDSHAKE_COMPLETE" : "error"));
     if (res > CR_OK)
     {
@@ -2971,7 +2915,7 @@ int run_plugin_auth(MYSQL *mysql, char *data, uint data_len,
   DBUG_RETURN (mysql->net.read_pos[0] != 0);
 }
 
-MYSQL * STDCALL 
+MYSQL * STDCALL
 CLI_MYSQL_REAL_CONNECT(MYSQL *mysql,const char *host, const char *user,
 		       const char *passwd, const char *db,
 		       uint port, const char *unix_socket,ulong client_flag)
@@ -3214,9 +3158,9 @@ CLI_MYSQL_REAL_CONNECT(MYSQL *mysql,const char *host, const char *user,
     my_snprintf(port_buf, NI_MAXSERV, "%d", port);
     gai_errno= getaddrinfo(host, port_buf, &hints, &res_lst);
 
-    if (gai_errno != 0) 
-    { 
-      /* 
+    if (gai_errno != 0)
+    {
+      /*
         For DBUG we are keeping the right message but for client we default to
         historical error message.
       */
@@ -3365,7 +3309,7 @@ CLI_MYSQL_REAL_CONNECT(MYSQL *mysql,const char *host, const char *user,
   server_version_end= end= strend((char*) net->read_pos+1);
   mysql->thread_id=uint4korr(end+1);
   end+=5;
-  /* 
+  /*
     Scramble is split into two parts because old clients do not understand
     long scrambles; here goes the first part.
   */
@@ -3383,12 +3327,6 @@ CLI_MYSQL_REAL_CONNECT(MYSQL *mysql,const char *host, const char *user,
     mysql->server_status=uint2korr(end+3);
     mysql->server_capabilities|= uint2korr(end+5) << 16;
     pkt_scramble_len= end[7];
-    if (pkt_scramble_len < 0)
-    {
-      set_mysql_error(mysql, CR_MALFORMED_PACKET,
-                      unknown_sqlstate);        /* purecov: inspected */
-      goto error;
-    }
   }
   end+= 18;
 
@@ -3469,7 +3407,7 @@ CLI_MYSQL_REAL_CONNECT(MYSQL *mysql,const char *host, const char *user,
   if (mysql->client_flag & CLIENT_COMPRESS)      /* We will use compression */
     net->compress=1;
 
-#ifdef CHECK_LICENSE 
+#ifdef CHECK_LICENSE
   if (check_license(mysql))
     goto error;
 #endif
@@ -3676,7 +3614,7 @@ static void mysql_close_free(MYSQL *mysql)
 }
 
 /**
-  For use when the connection to the server has been lost (in which case 
+  For use when the connection to the server has been lost (in which case
   the server has discarded all information about prepared statements
   associated with the connection).
 
@@ -3826,7 +3764,7 @@ get_info:
     {
       set_mysql_error(mysql, CR_MALFORMED_PACKET, unknown_sqlstate);
       DBUG_RETURN(1);
-    }   
+    }
 
     error= handle_local_infile(mysql,(char*) pos);
     if ((length= cli_safe_read(mysql)) == packet_error || error)
@@ -3839,7 +3777,7 @@ get_info:
 
   if (!(fields=cli_read_rows(mysql,(MYSQL_FIELD*)0, protocol_41(mysql) ? 7:5)))
     DBUG_RETURN(1);
-  if (!(mysql->fields=unpack_fields(mysql, fields,&mysql->field_alloc,
+  if (!(mysql->fields=unpack_fields(fields,&mysql->field_alloc,
 				    (uint) field_count,0,
 				    mysql->server_capabilities)))
     DBUG_RETURN(1);
@@ -3985,7 +3923,7 @@ mysql_fetch_row(MYSQL_RES *res)
       if (mysql->status != MYSQL_STATUS_USE_RESULT)
       {
         set_mysql_error(mysql,
-                        res->unbuffered_fetch_cancelled ? 
+                        res->unbuffered_fetch_cancelled ?
                         CR_FETCH_CANCELED : CR_COMMANDS_OUT_OF_SYNC,
                         unknown_sqlstate);
       }
@@ -4125,11 +4063,6 @@ mysql_options(MYSQL *mysql,enum mysql_option option, const void *arg)
   case MYSQL_DEFAULT_AUTH:
     EXTENSION_SET_STRING(&mysql->options, default_auth, arg);
     break;
-  case MYSQL_ENABLE_CLEARTEXT_PLUGIN:
-    ENSURE_EXTENSIONS_PRESENT(&mysql->options);
-    mysql->options.extension->enable_cleartext_plugin= 
-      (*(my_bool*) arg) ? TRUE : FALSE;
-    break;
   default:
     DBUG_RETURN(1);
   }
@@ -4171,7 +4104,7 @@ const char * STDCALL mysql_error(MYSQL *mysql)
 
   EXAMPLE
     4.1.0-alfa ->  40100
-  
+
   NOTES
     We will ensure that a newer server always has a bigger number.
 
@@ -4190,7 +4123,7 @@ mysql_get_server_version(MYSQL *mysql)
   return (ulong) major*10000L+(ulong) (minor*100+version);
 }
 
-/* 
+/*
    mysql_set_character_set function sends SET NAMES cs_name to
    the server (which changes character_set_client, character_set_result
    and character_set_connection) and updates mysql->charset so other
@@ -4339,7 +4272,7 @@ static int clear_password_auth_client(MYSQL_PLUGIN_VIO *vio, MYSQL *mysql)
   int res;
 
   /* send password in clear text */
-  res= vio->write_packet(vio, (const unsigned char *) mysql->passwd, 
+  res= vio->write_packet(vio, (const unsigned char *) mysql->passwd,
 						 strlen(mysql->passwd) + 1);
 
   return res ? CR_ERROR : CR_OK;

@@ -1,33 +1,36 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "gamePCH.h"
 #include "DatabaseEnv.h"
 #include "GridDefines.h"
 #include "WaypointManager.h"
 #include "MapManager.h"
-#include "Log.h"
 
-WaypointMgr::WaypointMgr()
+WaypointMgr::WaypointMgr ()
 {
 }
 
-WaypointMgr::~WaypointMgr()
+WaypointMgr::~WaypointMgr ()
 {
     for (WaypointPathContainer::iterator itr = _waypointStore.begin(); itr != _waypointStore.end(); ++itr)
     {
@@ -40,7 +43,7 @@ WaypointMgr::~WaypointMgr()
     _waypointStore.clear();
 }
 
-void WaypointMgr::Load()
+void WaypointMgr::Load ()
 {
     uint32 oldMSTime = getMSTime();
 
@@ -67,8 +70,8 @@ void WaypointMgr::Load()
         float y = fields[3].GetFloat();
         float z = fields[4].GetFloat();
 
-        SkyFire::NormalizeMapCoord(x);
-        SkyFire::NormalizeMapCoord(y);
+        Trinity::NormalizeMapCoord(x);
+        Trinity::NormalizeMapCoord(y);
 
         wp->id = fields[1].GetUInt32();
         wp->x = x;
@@ -88,7 +91,7 @@ void WaypointMgr::Load()
     sLog->outString();
 }
 
-void WaypointMgr::ReloadPath(uint32 id)
+void WaypointMgr::ReloadPath (uint32 id)
 {
     WaypointPathContainer::iterator itr = _waypointStore.find(id);
     if (itr != _waypointStore.end())
@@ -99,12 +102,7 @@ void WaypointMgr::ReloadPath(uint32 id)
         _waypointStore.erase(itr);
     }
 
-    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_WAYPOINT_DATA_BY_ID);
-
-    stmt->setUInt32(0, id);
-
-    PreparedQueryResult result = WorldDatabase.Query(stmt);
-    
+    QueryResult result = WorldDatabase.PQuery("SELECT point, position_x, position_y, position_z, move_flag, delay, action, action_chance FROM waypoint_data WHERE id = %u ORDER BY point", id);
     if (!result)
         return;
 
@@ -113,14 +111,14 @@ void WaypointMgr::ReloadPath(uint32 id)
     do
     {
         Field* fields = result->Fetch();
-        WaypointData* wp = new WaypointData();
+        WaypointData *wp = new WaypointData();
 
         float x = fields[1].GetFloat();
         float y = fields[2].GetFloat();
         float z = fields[3].GetFloat();
 
-        SkyFire::NormalizeMapCoord(x);
-        SkyFire::NormalizeMapCoord(y);
+        Trinity::NormalizeMapCoord(x);
+        Trinity::NormalizeMapCoord(y);
 
         wp->id = fields[0].GetUInt32();
         wp->x = x;

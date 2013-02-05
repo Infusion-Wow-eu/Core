@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -202,9 +205,9 @@ Position DeceiverLocations[3]=
 // Locations, where Shield Orbs will spawn
 float ShieldOrbLocations[4][2]=
 {
-    {1698.900f, 627.870f},   // middle pont of Sunwell
-    {12, 3.14f},            // First one spawns northeast of KJ
-    {12, 3.14f/0.7f},        // Second one spawns southeast
+    {1698.900f, 627.870f},    // middle pont of Sunwell
+    {12, 3.14f},             // First one spawns northeast of KJ
+    {12, 3.14f/0.7f},         // Second one spawns southeast
     {12, 3.14f*3.8f}          // Third one spawns (?)
 };
 
@@ -252,9 +255,9 @@ public:
 
     struct boss_kalecgos_kjAI : public ScriptedAI
     {
-        boss_kalecgos_kjAI(Creature* creature) : ScriptedAI(creature)
+        boss_kalecgos_kjAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -405,9 +408,9 @@ public:
 
     struct mob_kiljaeden_controllerAI : public Scripted_NoMovementAI
     {
-        mob_kiljaeden_controllerAI(Creature* creature) : Scripted_NoMovementAI(creature), summons(me)
+        mob_kiljaeden_controllerAI(Creature* c) : Scripted_NoMovementAI(c), summons(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -424,7 +427,7 @@ public:
         {
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            me->AddUnitState(UNIT_STATE_STUNNED);
+            me->AddUnitState(UNIT_STAT_STUNNED);
 
             ScriptedAI::InitializeAI();
         }
@@ -433,9 +436,8 @@ public:
         {
             phase = PHASE_DECEIVERS;
 
-            if (instance)
-                if (Creature* pKalecKJ = Unit::GetCreature((*me), instance->GetData64(DATA_KALECGOS_KJ)))
-                    CAST_AI(boss_kalecgos_kj::boss_kalecgos_kjAI, pKalecKJ->AI())->ResetOrbs();
+            if (Creature* pKalecKJ = Unit::GetCreature((*me), instance->GetData64(DATA_KALECGOS_KJ)))
+                CAST_AI(boss_kalecgos_kj::boss_kalecgos_kjAI, pKalecKJ->AI())->ResetOrbs();
             deceiverDeathCount = 0;
             bSummonedDeceivers = false;
             bKiljaedenDeath = false;
@@ -505,9 +507,9 @@ public:
 
     struct boss_kiljaedenAI : public Scripted_NoMovementAI
     {
-        boss_kiljaedenAI(Creature* creature) : Scripted_NoMovementAI(creature), summons(me)
+        boss_kiljaedenAI(Creature* c) : Scripted_NoMovementAI(c), summons(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -659,9 +661,15 @@ public:
             DoScriptText(RAND(SAY_KJ_REFLECTION1, SAY_KJ_REFLECTION2), me);
             for (uint8 i = 0; i < 4; ++i)
             {
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true, -SPELL_VENGEANCE_OF_THE_BLUE_FLIGHT))
+                float x, y, z;
+                Unit* target = NULL;
+                for (uint8 z = 0; z < 6; ++z)
                 {
-                    float x, y, z;
+                    target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
+                    if (!target || !target->HasAura(SPELL_VENGEANCE_OF_THE_BLUE_FLIGHT, 0))break;
+                }
+                if (target)
+                {
                     target->GetPosition(x, y, z);
                     if (Creature* pSinisterReflection = me->SummonCreature(CREATURE_SINISTER_REFLECTION, x, y, z, 0, TEMPSUMMON_CORPSE_DESPAWN, 0))
                     {
@@ -912,9 +920,9 @@ public:
 
     struct mob_hand_of_the_deceiverAI : public ScriptedAI
     {
-        mob_hand_of_the_deceiverAI(Creature* creature) : ScriptedAI(creature)
+        mob_hand_of_the_deceiverAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -1012,7 +1020,7 @@ public:
 
     struct mob_felfire_portalAI : public Scripted_NoMovementAI
     {
-        mob_felfire_portalAI(Creature* creature) : Scripted_NoMovementAI(creature) {}
+        mob_felfire_portalAI(Creature* c) : Scripted_NoMovementAI(c) {}
 
         uint32 uiSpawnFiendTimer;
 
@@ -1056,7 +1064,7 @@ public:
 
     struct mob_volatile_felfire_fiendAI : public ScriptedAI
     {
-        mob_volatile_felfire_fiendAI(Creature* creature) : ScriptedAI(creature) {}
+        mob_volatile_felfire_fiendAI(Creature* c) : ScriptedAI(c) {}
 
         uint32 uiExplodeTimer;
 
@@ -1113,7 +1121,7 @@ public:
 
     struct mob_armageddonAI : public Scripted_NoMovementAI
     {
-        mob_armageddonAI(Creature* creature) : Scripted_NoMovementAI(creature) {}
+        mob_armageddonAI(Creature* c) : Scripted_NoMovementAI(c) {}
 
         uint8 spell;
         uint32 uiTimer;
@@ -1167,9 +1175,9 @@ public:
 
     struct mob_shield_orbAI : public ScriptedAI
     {
-        mob_shield_orbAI(Creature* creature) : ScriptedAI(creature)
+        mob_shield_orbAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -1182,7 +1190,7 @@ public:
 
         void Reset()
         {
-            me->SetLevitate(true);
+            me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
             bPointReached = true;
             uiTimer = urand(500, 1000);
             uiCheckTimer = 1000;
@@ -1254,7 +1262,7 @@ public:
 
     struct mob_sinster_reflectionAI : public ScriptedAI
     {
-        mob_sinster_reflectionAI(Creature* creature) : ScriptedAI(creature) {}
+        mob_sinster_reflectionAI(Creature* c) : ScriptedAI(c) {}
 
         uint8 victimClass;
         uint32 uiTimer[3];

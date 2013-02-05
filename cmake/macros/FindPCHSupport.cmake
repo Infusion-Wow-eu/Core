@@ -1,14 +1,3 @@
-# Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
-# Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
-#
-# This file is free software; as a special exception the author gives
-# unlimited permission to copy and/or distribute it, with or without
-# modifications, as long as this notice is preserved.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 # - Try to find precompiled headers support for GCC 3.4 and 4.x (and MSVC)
 # Once done this will define:
 #
@@ -292,15 +281,15 @@ MACRO(ADD_NATIVE_PRECOMPILED_HEADER _targetName _input)
         SET(oldProps "")
     endif(${oldProps} MATCHES NOTFOUND)
 	
-    GET_FILENAME_COMPONENT(_name ${_input} NAME)
+	GET_FILENAME_COMPONENT(_name ${_input} NAME)
 
     SET(newProperties "${oldProps} /Yu\"${_name}.h\"")
-    IF( NOT "${ARGN}" STREQUAL "0")
-    SET(newProperties "${newProperties}  /FI\"${_name}.h\"")
-    ELSE( NOT "${ARGN}" STREQUAL "0")
-    # enable edit and continue if PCH is handled properly and we are building in debug
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
-    ENDIF( NOT "${ARGN}" STREQUAL "0")
+	IF( NOT "${ARGN}" STREQUAL "0")
+	SET(newProperties "${newProperties}  /FI\"${_name}.h\"")
+	ELSE( NOT "${ARGN}" STREQUAL "0")
+	# enable edit and continue if PCH is handled properly and we are building in debug
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
+	ENDIF( NOT "${ARGN}" STREQUAL "0")
     SET_TARGET_PROPERTIES(${_targetName} PROPERTIES COMPILE_FLAGS "${newProperties}")
 
     #also inlude ${oldProps} to have the same compile options

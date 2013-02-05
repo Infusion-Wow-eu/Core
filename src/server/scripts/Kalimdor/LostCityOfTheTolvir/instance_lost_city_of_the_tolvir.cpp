@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
+ * Copyright (C) 2011- 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -16,7 +16,7 @@
  */
 
 #include "ScriptPCH.h"
-#include "lost_city_of_the_tolvir.h"
+#include "the_lost_city_of_tol_vir.h"
 
 #define ENCOUNTERS 5
 
@@ -42,95 +42,95 @@ public:
     {
         instance_lost_city_of_the_tolvir_InstanceMapScript(InstanceMap* map) : InstanceScript(map) {}
 
-        uint32 Encounter[ENCOUNTERS];
+        uint32 uiEncounter[ENCOUNTERS];
 
-        uint64 GeneralHusam;
-        uint64 HighProphetBarim;
-        uint64 Lockmaw;
-        uint64 Augh;
-        uint64 Siamat;
-        uint64 TeamInInstance;
+        uint64 uiGeneralHusam;
+        uint64 uiHighProphetBarim;
+        uint64 uiLockmaw;
+        uint64 uiAugh;
+        uint64 uiSiamat;
+        uint64 uiTeamInInstance;
 
         void Initialize()
         {
-            GeneralHusam           = 0;
-            HighProphetBarim       = 0;
-            Lockmaw                = 0;
-            Augh                   = 0;
-            Siamat                 = 0;
+            uiGeneralHusam = 0;
+            uiHighProphetBarim = 0;
+            uiLockmaw = 0;
+            uiAugh = 0;
+            uiSiamat = 0;
 
-            for (uint8 i=0 ; i<ENCOUNTERS; ++i)
-                Encounter[i] = NOT_STARTED;
+            for(uint8 i=0 ; i<ENCOUNTERS; ++i)
+                uiEncounter[i] = NOT_STARTED;
         }
 
         bool IsEncounterInProgress() const
         {
-            for (uint8 i=0; i<ENCOUNTERS; ++i)
+            for(uint8 i=0; i<ENCOUNTERS; ++i)
             {
-                if (Encounter[i] == IN_PROGRESS)
+                if (uiEncounter[i] == IN_PROGRESS)
                     return true;
             }
             return false;
         }
 
-        void OnCreatureCreate(Creature* creature, bool )
+        void OnCreatureCreate(Creature* pCreature, bool )
         {
-            switch (creature->GetEntry())
+            switch(pCreature->GetEntry())
             {
                  case BOSS_GENERAL_HUSAM:
-                     GeneralHusam = creature->GetGUID();
+                     uiGeneralHusam = pCreature->GetGUID();
                      break;
                  case BOSS_HIGH_PROPHET_BARIM:
-                     HighProphetBarim = creature->GetGUID();
+                     uiHighProphetBarim = pCreature->GetGUID();
                      break;
                  case BOSS_LOCKMAW:
-                     Lockmaw = creature->GetGUID();
+                     uiLockmaw = pCreature->GetGUID();
                      break;
                  case BOSS_AUGH:
-                     Augh = creature->GetGUID();
+                     uiAugh = pCreature->GetGUID();
                      break;
                  case BOSS_SIAMAT:
-                     Siamat = creature->GetGUID();
+                     uiSiamat = pCreature->GetGUID();
                      break;
             }
         }
 
         uint64 getData64(uint32 identifier)
         {
-            switch (identifier)
+            switch(identifier)
             {
                 case DATA_GENERAL_HUSAM:
-                    return GeneralHusam;
+                    return uiGeneralHusam;
                 case DATA_HIGH_PROPHET_BARIM:
-                    return HighProphetBarim;
+                    return uiHighProphetBarim;
                 case DATA_LOCKMAW:
-                    return Lockmaw;
+                    return uiLockmaw;
                 case DATA_AUGH:
-                    return Augh;
+                    return uiAugh;
                 case DATA_SIAMAT:
-                    return Siamat;
+                    return uiSiamat;
             }
             return 0;
         }
 
         void SetData(uint32 type, uint32 data)
         {
-            switch (type)
+            switch(type)
             {
                 case DATA_GENERAL_HUSAM_EVENT:
-                    Encounter[0] = data;
+                    uiEncounter[0] = data;
                     break;
                 case DATA_HIGH_PROPHET_BARIM_EVENT:
-                    Encounter[1] = data;
+                    uiEncounter[1] = data;
                     break;
                 case DATA_LOCKMAW_EVENT:
-                    Encounter[2] = data;
+                    uiEncounter[2] = data;
                     break;
                 case DATA_AUGH_EVENT:
-                    Encounter[3] = data;
+                    uiEncounter[3] = data;
                     break;
                 case DATA_SIAMAT_EVENT:
-                    Encounter[4] = data;
+                    uiEncounter[4] = data;
                     break;
             }
 
@@ -140,18 +140,18 @@ public:
 
         uint32 GetData(uint32 type)
         {
-            switch (type)
+            switch(type)
             {
                 case DATA_GENERAL_HUSAM_EVENT:
-                    return Encounter[0];
+                    return uiEncounter[0];
                 case DATA_HIGH_PROPHET_BARIM_EVENT:
-                    return Encounter[1];
+                    return uiEncounter[1];
                 case DATA_LOCKMAW_EVENT:
-                    return Encounter[2];
+                    return uiEncounter[2];
                 case DATA_AUGH_EVENT:
-                    return Encounter[3];
+                    return uiEncounter[3];
                 case DATA_SIAMAT_EVENT:
-                    return Encounter[4];
+                    return uiEncounter[4];
             }
             return 0;
         }
@@ -162,7 +162,7 @@ public:
 
             std::string str_data;
             std::ostringstream saveStream;
-            saveStream << "L V" << Encounter[0] << " " << Encounter[1]  << " " << Encounter[2]  << " " << Encounter[3] << " " << Encounter[4];
+            saveStream << "L V" << uiEncounter[0] << " " << uiEncounter[1]  << " " << uiEncounter[2]  << " " << uiEncounter[3] << " " << uiEncounter[4];
             str_data = saveStream.str();
 
             OUT_SAVE_INST_DATA_COMPLETE;
@@ -187,15 +187,15 @@ public:
 
             if (dataHead1 == 'L' && dataHead2 == 'V')
             {
-                Encounter[0] = data0;
-                Encounter[1] = data1;
-                Encounter[2] = data2;
-                Encounter[3] = data3;
-                Encounter[4] = data4;
+                uiEncounter[0] = data0;
+                uiEncounter[1] = data1;
+                uiEncounter[2] = data2;
+                uiEncounter[3] = data3;
+                uiEncounter[4] = data4;
 
-                for (uint8 i=0; i<ENCOUNTERS; ++i)
-                    if (Encounter[i] == IN_PROGRESS)
-                        Encounter[i] = NOT_STARTED;
+                for(uint8 i=0; i<ENCOUNTERS; ++i)
+                    if (uiEncounter[i] == IN_PROGRESS)
+                        uiEncounter[i] = NOT_STARTED;
             }
             else OUT_LOAD_INST_DATA_FAIL;
 

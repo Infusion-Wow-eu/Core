@@ -1,20 +1,25 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #ifndef _VMAPTOOLS_H
@@ -26,40 +31,37 @@
 #include "NodeValueAccess.h"
 
 /**
-The Class is mainly taken from G3D/AABSPTree.h but modified to be able to use our internal data structure.
-This is an iterator that helps us analysing the BSP-Trees.
-The collision detection is modified to return true, if we are inside an object.
-*/
+ The Class is mainly taken from G3D/AABSPTree.h but modified to be able to use our internal data structure.
+ This is an iterator that helps us analysing the BSP-Trees.
+ The collision detection is modified to return true, if we are inside an object.
+ */
 
 namespace VMAP
 {
     template<class TValue>
-    class IntersectionCallBack {
+    class IntersectionCallBack
+    {
     public:
-        TValue*      closestEntity;
+        TValue* closestEntity;
         G3D::Vector3 hitLocation;
         G3D::Vector3 hitNormal;
 
-        void operator()(const G3D::Ray& ray, const TValue* entity, bool pStopAtFirstHit, float& distance) {
+        void operator()(const G3D::Ray& ray, const TValue* entity, bool pStopAtFirstHit, float& distance)
+        {
             entity->intersect(ray, distance, pStopAtFirstHit, hitLocation, hitNormal);
         }
     };
 
-    //==============================================================
-    //==============================================================
-    //==============================================================
+//==============================================================
+//==============================================================
+//==============================================================
 
     class MyCollisionDetection
     {
     private:
     public:
 
-        static bool collisionLocationForMovingPointFixedAABox(
-            const G3D::Vector3&     origin,
-            const G3D::Vector3&     dir,
-            const G3D::AABox&       box,
-            G3D::Vector3&           location,
-            bool&                   Inside)
+        static bool collisionLocationForMovingPointFixedAABox(const G3D::Vector3& origin, const G3D::Vector3& dir, const G3D::AABox& box, G3D::Vector3& location, bool& Inside)
         {
             // Integer representation of a floating-point value.
 #define IR(x)   (reinterpret_cast<G3D::uint32 const&>(x))
@@ -75,7 +77,7 @@ namespace VMAP
                 if (origin[i] < MinB[i])
                 {
                     location[i] = MinB[i];
-                    Inside      = false;
+                    Inside = false;
 
                     // Calculate T distances to candidate planes
                     if (IR(dir[i]))
@@ -86,7 +88,7 @@ namespace VMAP
                 else if (origin[i] > MaxB[i])
                 {
                     location[i] = MaxB[i];
-                    Inside      = false;
+                    Inside = false;
 
                     // Calculate T distances to candidate planes
                     if (IR(dir[i]))
@@ -127,8 +129,7 @@ namespace VMAP
                 if (i != WhichPlane)
                 {
                     location[i] = origin[i] + MaxT[WhichPlane] * dir[i];
-                    if ((location[i] < MinB[i]) ||
-                        (location[i] > MaxB[i]))
+                    if ((location[i] < MinB[i]) || (location[i] > MaxB[i]))
                     {
                         // On this plane we're outside the box extents, so
                         // we miss the box
@@ -137,10 +138,10 @@ namespace VMAP
                 }
             }
             /*
-            // Choose the normal to be the plane normal facing into the ray
-            normal = G3D::Vector3::zero();
-            normal[WhichPlane] = (dir[WhichPlane] > 0) ? -1.0 : 1.0;
-            */
+             // Choose the normal to be the plane normal facing into the ray
+             normal = G3D::Vector3::zero();
+             normal[WhichPlane] = (dir[WhichPlane] > 0) ? -1.0 : 1.0;
+             */
             return true;
 
 #undef IR

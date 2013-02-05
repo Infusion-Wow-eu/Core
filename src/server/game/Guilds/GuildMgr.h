@@ -1,22 +1,26 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2011 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008-2011 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2011- 2013 ArkCORE <http://www.arkania.net/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+ 
 #ifndef _GUILDMGR_H
 #define _GUILDMGR_H
 
@@ -30,6 +34,7 @@ struct GuildRewardsEntry
     uint32 standing;
 };
 typedef std::vector<GuildRewardsEntry> GuildRewardsVector;
+
 class GuildMgr
 {
     friend class ACE_Singleton<GuildMgr, ACE_Null_Mutex>;
@@ -41,11 +46,11 @@ private:
 public:
     typedef UNORDERED_MAP<uint32, Guild*> GuildContainer;
 
-    Guild* GetGuildByLeader(uint64 guid) const;
+    Guild* GetGuildByLeader(uint64 const& guid) const;
     Guild* GetGuildById(uint32 guildId) const;
     Guild* GetGuildByName(const std::string& guildName) const;
     std::string GetGuildNameById(uint32 guildId) const;
-    GuildRewardsVector const& GetGuildRewards() { return mGuildRewards; }
+	GuildRewardsVector const& GetGuildRewards() { return mGuildRewards; }
 
     void LoadGuilds();
     void AddGuild(Guild* guild);
@@ -53,13 +58,12 @@ public:
 
     uint32 GenerateGuildId();
     void SetNextGuildId(uint32 Id) { NextGuildId = Id; }
+	void LoadGuildRewards();
 
-    void LoadGuildRewards();
-    //void LoadGuildMemberProfessions(std::vector<Guild*>& GuildVector, QueryResult& result);  // g.professions aren't finished yet
 protected:
     uint32 NextGuildId;
     GuildContainer GuildStore;
-    GuildRewardsVector  mGuildRewards;
+	GuildRewardsVector  mGuildRewards;
 };
 
 #define sGuildMgr ACE_Singleton<GuildMgr, ACE_Null_Mutex>::instance()

@@ -1,20 +1,27 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2013 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /* ScriptData
@@ -46,7 +53,7 @@ class instance_the_eye : public InstanceMapScript
 
         struct instance_the_eye_InstanceMapScript : public InstanceScript
         {
-            instance_the_eye_InstanceMapScript(Map* map) : InstanceScript(map) {}
+            instance_the_eye_InstanceMapScript(Map* pMap) : InstanceScript(pMap) {Initialize();};
 
             uint64 ThaladredTheDarkener;
             uint64 LordSanguinar;
@@ -84,30 +91,30 @@ class instance_the_eye : public InstanceMapScript
                 return false;
             }
 
-            void OnCreatureCreate(Creature* creature)
+            void OnCreatureCreate(Creature* pCreature, bool /*add*/)
             {
-                switch (creature->GetEntry())
+                switch (pCreature->GetEntry())
                 {
                 case 20064:
-                    ThaladredTheDarkener = creature->GetGUID();
+                    ThaladredTheDarkener = pCreature->GetGUID();
                     break;
                 case 20063:
-                    MasterEngineerTelonicus = creature->GetGUID();
+                    MasterEngineerTelonicus = pCreature->GetGUID();
                     break;
                 case 20062:
-                    GrandAstromancerCapernian = creature->GetGUID();
+                    GrandAstromancerCapernian = pCreature->GetGUID();
                     break;
                 case 20060:
-                    LordSanguinar = creature->GetGUID();
+                    LordSanguinar = pCreature->GetGUID();
                     break;
                 case 19622:
-                    Kaelthas = creature->GetGUID();
+                    Kaelthas = pCreature->GetGUID();
                     break;
                 case 18805:
-                    Astromancer = creature->GetGUID();
+                    Astromancer = pCreature->GetGUID();
                     break;
                 case 19514:
-                    Alar = creature->GetGUID();
+                    Alar = pCreature->GetGUID();
                     break;
                 }
             }
@@ -166,7 +173,7 @@ class instance_the_eye : public InstanceMapScript
             {
                 OUT_SAVE_INST_DATA;
                 std::ostringstream stream;
-                stream << m_auiEncounter[0] << ' ' << m_auiEncounter[1] << ' ' << m_auiEncounter[2] << ' ' << m_auiEncounter[3];
+                stream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " " << m_auiEncounter[3];
                 char* out = new char[stream.str().length() + 1];
                 strcpy(out, stream.str().c_str());
                 if (out)
@@ -195,12 +202,12 @@ class instance_the_eye : public InstanceMapScript
             }
         };
 
-        InstanceScript* GetInstanceScript(InstanceMap* map) const
+        InstanceScript* GetInstanceScript(InstanceMap* pMap) const
         {
-            return new instance_the_eye_InstanceMapScript(map);
+            return new instance_the_eye_InstanceMapScript(pMap);
         }
 };
 void AddSC_instance_the_eye()
 {
-    new instance_the_eye();
+    new instance_the_eye;
 }

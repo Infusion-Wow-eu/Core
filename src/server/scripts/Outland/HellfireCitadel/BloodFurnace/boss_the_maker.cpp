@@ -1,20 +1,27 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2013 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /* ScriptData
@@ -36,7 +43,7 @@ enum eEnums
     SAY_KILL_2                  = -1542013,
     SAY_DIE                     = -1542014,
 
-    SPELL_ACID_SPRAY            = 38153,                    // heroic 38973 ??? 38153
+    SPELL_ACID_SPRAY            = 38153,                   // heroic 38973 ??? 38153
     SPELL_EXPLODING_BREAKER     = 30925,
     SPELL_KNOCKDOWN             = 20276,
     SPELL_DOMINATION            = 25772                     // ???
@@ -53,12 +60,12 @@ class boss_the_maker : public CreatureScript
 
         struct boss_the_makerAI : public ScriptedAI
         {
-            boss_the_makerAI(Creature* creature) : ScriptedAI(creature)
+            boss_the_makerAI(Creature* pCreature) : ScriptedAI(pCreature)
             {
-                instance = creature->GetInstanceScript();
+                pInstance = pCreature->GetInstanceScript();
             }
 
-            InstanceScript* instance;
+            InstanceScript* pInstance;
 
             uint32 AcidSpray_Timer;
             uint32 ExplodingBreaker_Timer;
@@ -72,22 +79,22 @@ class boss_the_maker : public CreatureScript
                 Domination_Timer = 120000;
                 Knockdown_Timer = 10000;
 
-                if (!instance)
+                if (!pInstance)
                     return;
 
-                instance->SetData(TYPE_THE_MAKER_EVENT, NOT_STARTED);
-                instance->HandleGameObject(instance->GetData64(DATA_DOOR2), true);
+                pInstance->SetData(TYPE_THE_MAKER_EVENT, NOT_STARTED);
+                pInstance->HandleGameObject(pInstance->GetData64(DATA_DOOR2), true);
             }
 
-            void EnterCombat(Unit* /*who*/)
+            void EnterCombat(Unit * /*who*/)
             {
                 DoScriptText(RAND(SAY_AGGRO_1, SAY_AGGRO_2, SAY_AGGRO_3), me);
 
-                if (!instance)
+                if (!pInstance)
                     return;
 
-                instance->SetData(TYPE_THE_MAKER_EVENT, IN_PROGRESS);
-                instance->HandleGameObject(instance->GetData64(DATA_DOOR2), false);
+                pInstance->SetData(TYPE_THE_MAKER_EVENT, IN_PROGRESS);
+                pInstance->HandleGameObject(pInstance->GetData64(DATA_DOOR2), false);
             }
 
             void KilledUnit(Unit* /*victim*/)
@@ -99,12 +106,12 @@ class boss_the_maker : public CreatureScript
             {
                 DoScriptText(SAY_DIE, me);
 
-                if (!instance)
+                if (!pInstance)
                     return;
 
-                instance->SetData(TYPE_THE_MAKER_EVENT, DONE);
-                instance->HandleGameObject(instance->GetData64(DATA_DOOR2), true);
-                instance->HandleGameObject(instance->GetData64(DATA_DOOR3), true);
+                pInstance->SetData(TYPE_THE_MAKER_EVENT, DONE);
+                pInstance->HandleGameObject(pInstance->GetData64(DATA_DOOR2), true);
+                pInstance->HandleGameObject(pInstance->GetData64(DATA_DOOR3), true);
              }
 
             void UpdateAI(const uint32 diff)
@@ -122,8 +129,8 @@ class boss_the_maker : public CreatureScript
 
                 if (ExplodingBreaker_Timer <= diff)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                        DoCast(target, SPELL_EXPLODING_BREAKER);
+                    if (Unit *pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0))
+                        DoCast(pTarget, SPELL_EXPLODING_BREAKER);
                     ExplodingBreaker_Timer = 4000+rand()%8000;
                 }
                 else
@@ -132,10 +139,10 @@ class boss_the_maker : public CreatureScript
                 /* // Disabled until Core Support for mind control
                 if (domination_timer_timer <= diff)
                 {
-                Unit* target;
-                target = SelectUnit(SELECT_TARGET_RANDOM, 0);
+                Unit *pTarget;
+                pTarget = SelectUnit(SELECT_TARGET_RANDOM, 0);
 
-                DoCast(target, SPELL_DOMINATION);
+                DoCast(pTarget, SPELL_DOMINATION);
 
                 domination_timer = 120000;
                 } else domination_timer -=diff;

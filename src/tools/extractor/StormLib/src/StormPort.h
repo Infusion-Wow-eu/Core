@@ -9,7 +9,7 @@
 /* Computer: whiplash.flachland-chemnitz.de                                  */
 /* System: Linux 2.4.0 on i686                                               */
 /*                                                                           */
-/* Author: Sam Wilkins <swilkins1337@gmail.com>                              */
+/* Author: Sam Wilkins                                                       */
 /* System: Mac OS X and port to big endian processor                         */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
@@ -26,12 +26,6 @@
 #ifndef __STORMPORT_H__
 #define __STORMPORT_H__
 
-#ifndef __cplusplus
-  #define bool char
-  #define true 1
-  #define false 0
-#endif
-
 // Defines for Windows
 #if !defined(PLATFORM_DEFINED) && (defined(WIN32) || defined(WIN64))
 
@@ -41,12 +35,10 @@
   #define _CRT_NON_CONFORMING_SWPRINTFS
   #endif
 
-  #include <tchar.h>
   #include <assert.h>
   #include <ctype.h>
   #include <stdio.h>
   #include <windows.h>
-  #include <wininet.h>
   #define PLATFORM_LITTLE_ENDIAN
 
   #ifdef WIN64
@@ -60,24 +52,18 @@
 
 #endif
 
-// Defines for Mac
-#if !defined(PLATFORM_DEFINED) && defined(__APPLE__)  // Mac BSD API
+// Defines for Mac Carbon
+#if !defined(PLATFORM_DEFINED) && defined(__APPLE__)  // Mac Carbon API
 
-  // Macintosh
-  #include <sys/types.h>
-  #include <sys/stat.h>
-  #include <sys/mman.h>
-  #include <unistd.h>
-  #include <fcntl.h>
-  #include <stdlib.h>
-  #include <errno.h>
+  // Macintosh using Carbon
+  #include <Carbon/Carbon.h> // Mac OS X
 
   #define    PKEXPORT
   #define    __SYS_ZLIB
   #define    __SYS_BZLIB
 
   #ifndef __BIG_ENDIAN__
-    #define PLATFORM_LITTLE_ENDIAN
+    #define PLATFORM_LITTLE_ENDIAN          // Apple is now making Macs with Intel CPUs
   #endif
 
   #define PLATFORM_MAC
@@ -90,7 +76,6 @@
 
   #include <sys/types.h>
   #include <sys/stat.h>
-  #include <sys/mman.h>
   #include <fcntl.h>
   #include <unistd.h>
   #include <stdint.h>
@@ -149,32 +134,34 @@
   #define FILE_CURRENT  SEEK_CUR
   #define FILE_END      SEEK_END
 
-  #define _T(x)     x
-  #define _tcslen   strlen
-  #define _tcscpy   strcpy
-  #define _tcscat   strcat
-  #define _tcsrchr  strrchr
-  #define _tprintf  printf
-  #define _stprintf sprintf
-  #define _tremove  remove
-
-  #define _stricmp  strcasecmp
+  #define _stricmp strcasecmp
   #define _strnicmp strncasecmp
-  #define _tcsnicmp strncasecmp
+
+  void  SetLastError(int err);
+  int   GetLastError();
 
 #endif // !WIN32
 
-// 64-bit calls are supplied by "normal" calls on Mac
-#if defined(PLATFORM_MAC)
-  #define stat64  stat
-  #define fstat64 fstat
-  #define lseek64 lseek
-  #define off64_t off_t
-  #define O_LARGEFILE 0
+// Platform-specific error codes
+#ifdef PLATFORM_MAC
+  #define ERROR_SUCCESS                  noErr
+  #define ERROR_FILE_NOT_FOUND           fnfErr
+  #define ERROR_ACCESS_DENIED            permErr
+  #define ERROR_INVALID_HANDLE           rfNumErr
+  #define ERROR_NOT_ENOUGH_MEMORY        mFulErr
+  #define ERROR_BAD_FORMAT               200            // Returned when the opened file is in format that is not recognized by StormLib
+  #define ERROR_NO_MORE_FILES            errFSNoMoreItems
+  #define ERROR_HANDLE_EOF               eofErr
+  #define ERROR_NOT_SUPPORTED            201
+  #define ERROR_INVALID_PARAMETER        paramErr
+  #define ERROR_DISK_FULL                dskFulErr
+  #define ERROR_ALREADY_EXISTS           dupFNErr
+  #define ERROR_CAN_NOT_COMPLETE         202            // A generic error, when any operation fails from an unknown reason
+  #define ERROR_FILE_CORRUPT             203            // At any point when there is bad data format in the file
+  #define ERROR_INSUFFICIENT_BUFFER      errFSBadBuffer
 #endif
 
-// Platform-specific error codes for UNIX-based platforms
-#if defined(PLATFORM_MAC) || defined(PLATFORM_LINUX)
+#ifdef PLATFORM_LINUX
   #define ERROR_SUCCESS                  0
   #define ERROR_FILE_NOT_FOUND           ENOENT
   #define ERROR_ACCESS_DENIED            EPERM
@@ -206,18 +193,16 @@
     #define    BSWAP_TMPQUSERDATA(a)            {}
     #define    BSWAP_TMPQHEADER(a)              {}
 #else
-    int16_t  SwapInt16(uint16_t);
-    uint16_t SwapUInt16(uint16_t);
-    int32_t  SwapInt32(uint32_t);
-    uint32_t SwapUInt32(uint32_t);
-    int64_t  SwapInt64(uint64_t);
-    uint64_t SwapUInt64(uint64_t);
-    void ConvertUInt16Buffer(void * ptr, size_t length);
-    void ConvertUInt32Buffer(void * ptr, size_t length);
-    void ConvertUInt64Buffer(void * ptr, size_t length);
-    void ConvertPartHeader(void * partHeader);
-    void ConvertTMPQUserData(void *userData);
-    void ConvertTMPQHeader(void *header);
+    extern int16_t  SwapInt16(uint16_t);
+    extern uint16_t SwapUInt16(uint16_t);
+    extern int32_t  SwapInt32(uint32_t);
+    extern uint32_t SwapUInt32(uint32_t);
+    extern int32_t  SwapInt64(uint64_t);
+    extern uint32_t SwapUInt64(uint64_t);
+    extern void ConvertUnsignedLongBuffer(void * ptr, size_t length);
+    extern void ConvertUnsignedShortBuffer(void * ptr, size_t length);
+    extern void ConvertTMPQUserData(void *userData);
+    extern void ConvertTMPQHeader(void *header);
     #define    BSWAP_INT16_SIGNED(a)            SwapInt16((a))
     #define    BSWAP_INT16_UNSIGNED(a)          SwapUInt16((a))
     #define    BSWAP_INT32_SIGNED(a)            SwapInt32((a))

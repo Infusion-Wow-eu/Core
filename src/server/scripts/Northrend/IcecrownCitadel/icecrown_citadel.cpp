@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2010 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -612,7 +613,7 @@ class npc_rotting_frost_giant : public CreatureScript
 
                 _events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = _events.ExecuteEvent())
@@ -730,7 +731,6 @@ class boss_sister_svalna : public CreatureScript
                     Reset();
 
                 me->SetReactState(REACT_PASSIVE);
-                me->SetFlying(false);
             }
 
             void Reset()
@@ -752,7 +752,7 @@ class boss_sister_svalna : public CreatureScript
                     {
                         if (crusader->isAlive() && crusader->GetEntry() == crusader->GetCreatureData()->id)
                         {
-                            crusader->_Events.AddEvent(new CaptainSurviveTalk(*crusader), crusader->_Events.CalculateTime(delay));
+                            crusader->m_Events.AddEvent(new CaptainSurviveTalk(*crusader), crusader->m_Events.CalculateTime(delay));
                             delay += 6000;
                         }
                     }
@@ -798,6 +798,7 @@ class boss_sister_svalna : public CreatureScript
             {
                 _JustReachedHome();
                 me->SetReactState(REACT_PASSIVE);
+                me->SetFlying(false);
             }
 
             void DoAction(int32 const action)
@@ -810,7 +811,7 @@ class boss_sister_svalna : public CreatureScript
                     case ACTION_START_GAUNTLET:
                         me->setActive(true);
                         _isEventInProgress = true;
-                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC);
+                        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
                         events.ScheduleEvent(EVENT_SVALNA_START, 25000);
                         break;
                     case ACTION_RESURRECT_CAPTAINS:
@@ -828,7 +829,7 @@ class boss_sister_svalna : public CreatureScript
                 }
             }
 
-            void SpellHit(Unit* caster, SpellInfo const* spell)
+            void SpellHit(Unit* caster, SpellEntry const* spell)
             {
                 if (spell->Id == SPELL_HURL_SPEAR && me->HasAura(SPELL_AETHER_SHIELD))
                 {
@@ -844,11 +845,11 @@ class boss_sister_svalna : public CreatureScript
 
                 _isEventInProgress = false;
                 me->setActive(false);
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC);
+                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE | UNIT_FLAG_PASSIVE);
                 me->SetFlying(false);
             }
 
-            void SpellHitTarget(Unit* target, SpellInfo const* spell)
+            void SpellHitTarget(Unit* target, SpellEntry const* spell)
             {
                 switch (spell->Id)
                 {
@@ -875,7 +876,7 @@ class boss_sister_svalna : public CreatureScript
 
                 events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = events.ExecuteEvent())
@@ -1058,7 +1059,7 @@ class npc_crok_scourgebane : public CreatureScript
                         // get all nearby vrykul
                         std::list<Creature*> temp;
                         FrostwingVrykulSearcher check(me, 80.0f);
-                        SkyFire::CreatureListSearcher<FrostwingVrykulSearcher> searcher(me, temp, check);
+                        Trinity::CreatureListSearcher<FrostwingVrykulSearcher> searcher(me, temp, check);
                         me->VisitNearbyGridObject(80.0f, searcher);
 
                         _aliveTrash.clear();
@@ -1084,8 +1085,8 @@ class npc_crok_scourgebane : public CreatureScript
                 {
                     _wipeCheckTimer = 1000;
                     Player* player = NULL;
-                    SkyFire::AnyPlayerInObjectRangeCheck check(me, 60.0f);
-                    SkyFire::PlayerSearcher<SkyFire::AnyPlayerInObjectRangeCheck> searcher(me, player, check);
+                    Trinity::AnyPlayerInObjectRangeCheck check(me, 60.0f);
+                    Trinity::PlayerSearcher<Trinity::AnyPlayerInObjectRangeCheck> searcher(me, player, check);
                     me->VisitNearbyWorldObject(60.0f, searcher);
                     // wipe
                     if (!player)
@@ -1094,7 +1095,7 @@ class npc_crok_scourgebane : public CreatureScript
                         if (damage >= me->GetHealth())
                         {
                             FrostwingGauntletRespawner respawner;
-                            SkyFire::CreatureWorker<FrostwingGauntletRespawner> worker(me, respawner);
+                            Trinity::CreatureWorker<FrostwingGauntletRespawner> worker(me, respawner);
                             me->VisitNearbyGridObject(333.0f, worker);
                             Talk(SAY_CROK_DEATH);
                         }
@@ -1131,7 +1132,7 @@ class npc_crok_scourgebane : public CreatureScript
 
                 _events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = _events.ExecuteEvent())
@@ -1180,7 +1181,9 @@ class npc_crok_scourgebane : public CreatureScript
             bool CanAIAttack(Unit const* target) const
             {
                 // do not see targets inside Frostwing Halls when we are not there
-                return (me->GetPositionY() > 2660.0f) == (target->GetPositionY() > 2660.0f);
+                if (target->GetPositionY() < 2650.0f)
+                    return true;
+                return false;
             }
 
         private:
@@ -1259,13 +1262,15 @@ struct npc_argent_captainAI : public ScriptedAI
         bool CanAIAttack(Unit const* target) const
         {
             // do not see targets inside Frostwing Halls when we are not there
-            return (me->GetPositionY() > 2660.0f) == (target->GetPositionY() > 2660.0f);
+            if (target->GetPositionY() < 2650.0f)
+                return true;
+            return false;
         }
 
         void EnterEvadeMode()
         {
             // not yet following
-            if (me->GetMotionMaster()->GetMotionSlotType(MOTION_SLOT_IDLE) != CHASE_MOTION_TYPE || IsUndead)
+            if (me->GetMotionMaster()->GetMotionSlotType(MOTION_SLOT_IDLE) != TARGETED_MOTION_TYPE || IsUndead)
             {
                 ScriptedAI::EnterEvadeMode();
                 return;
@@ -1284,12 +1289,12 @@ struct npc_argent_captainAI : public ScriptedAI
             Reset();
         }
 
-        void SpellHit(Unit* /*caster*/, SpellInfo const* spell)
+        void SpellHit(Unit* /*caster*/, SpellEntry const* spell)
         {
             if (spell->Id == SPELL_REVIVE_CHAMPION && !IsUndead)
             {
                 IsUndead = true;
-                me->setDeathState(JUST_RESPAWNED);
+                me->setDeathState(JUST_ALIVED);
                 uint32 newEntry = 0;
                 switch (me->GetEntry())
                 {
@@ -1354,7 +1359,7 @@ class npc_captain_arnath : public CreatureScript
 
                 Events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = Events.ExecuteEvent())
@@ -1394,8 +1399,8 @@ class npc_captain_arnath : public CreatureScript
             Creature* FindFriendlyCreature() const
             {
                 Creature* target = NULL;
-                SkyFire::MostHPMissingInRange u_check(me, 60.0f, 0);
-                SkyFire::CreatureLastSearcher<SkyFire::MostHPMissingInRange> searcher(me, target, u_check);
+                Trinity::MostHPMissingInRange u_check(me, 60.0f, 0);
+                Trinity::CreatureLastSearcher<Trinity::MostHPMissingInRange> searcher(me, target, u_check);
                 me->VisitNearbyGridObject(60.0f, searcher);
                 return target;
             }
@@ -1435,7 +1440,7 @@ class npc_captain_brandon : public CreatureScript
 
                 Events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = Events.ExecuteEvent())
@@ -1503,7 +1508,7 @@ class npc_captain_grondel : public CreatureScript
 
                 Events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = Events.ExecuteEvent())
@@ -1568,7 +1573,7 @@ class npc_captain_rupert : public CreatureScript
 
                 Events.Update(diff);
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
+                if (me->HasUnitState(UNIT_STAT_CASTING))
                     return;
 
                 while (uint32 eventId = Events.ExecuteEvent())
@@ -1681,7 +1686,7 @@ class spell_icc_stoneform : public SpellScriptLoader
                 if (Creature* target = GetTarget()->ToCreature())
                 {
                     target->SetReactState(REACT_PASSIVE);
-                    target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                    target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                     target->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_STATE_CUSTOM_SPELL_02);
                 }
             }
@@ -1691,7 +1696,7 @@ class spell_icc_stoneform : public SpellScriptLoader
                 if (Creature* target = GetTarget()->ToCreature())
                 {
                     target->SetReactState(REACT_AGGRESSIVE);
-                    target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                    target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                     target->SetUInt32Value(UNIT_NPC_EMOTESTATE, 0);
                 }
             }
@@ -1722,7 +1727,7 @@ class spell_icc_sprit_alarm : public SpellScriptLoader
             {
                 PreventHitDefaultEffect(effIndex);
                 uint32 trapId = 0;
-                switch (GetSpellInfo()->Effects[effIndex].MiscValue)
+                switch (GetSpellInfo()->EffectMiscValue[effIndex])
                 {
                     case EVENT_AWAKEN_WARD_1:
                         trapId = GO_SPIRIT_ALARM_1;
@@ -1745,14 +1750,14 @@ class spell_icc_sprit_alarm : public SpellScriptLoader
 
                 std::list<Creature*> wards;
                 GetCaster()->GetCreatureListWithEntryInGrid(wards, NPC_DEATHBOUND_WARD, 150.0f);
-                wards.sort(SkyFire::ObjectDistanceOrderPred(GetCaster()));
+                wards.sort(Trinity::ObjectDistanceOrderPred(GetCaster()));
                 for (std::list<Creature*>::iterator itr = wards.begin(); itr != wards.end(); ++itr)
                 {
                     if ((*itr)->isAlive() && (*itr)->HasAura(SPELL_STONEFORM))
                     {
                         (*itr)->AI()->Talk(SAY_TRAP_ACTIVATE);
                         (*itr)->RemoveAurasDueToSpell(SPELL_STONEFORM);
-                        if (Unit* target = (*itr)->SelectNearestTarget(100.0f))
+                        if (Unit* target = (*itr)->SelectNearestTarget(150.0f))
                             (*itr)->AI()->AttackStart(target);
                         break;
                     }
@@ -1776,15 +1781,15 @@ class DeathPlagueTargetSelector
     public:
         explicit DeathPlagueTargetSelector(Unit* caster) : _caster(caster) {}
 
-        bool operator()(WorldObject* object) const
+        bool operator()(Unit* unit)
         {
-            if (object == _caster)
+            if (unit == _caster)
                 return true;
 
-            if (object->GetTypeId() != TYPEID_PLAYER)
+            if (unit->GetTypeId() != TYPEID_PLAYER)
                 return true;
 
-            if (object->ToUnit()->HasAura(SPELL_RECENTLY_INFECTED) || object->ToUnit()->HasAura(SPELL_DEATH_PLAGUE_AURA))
+            if (unit->HasAura(SPELL_RECENTLY_INFECTED) || unit->HasAura(SPELL_DEATH_PLAGUE_AURA))
                 return true;
 
             return false;
@@ -1810,25 +1815,25 @@ class spell_frost_giant_death_plague : public SpellScriptLoader
             }
 
             // First effect
-            void CountTargets(std::list<WorldObject*>& targets)
+            void CountTargets(std::list<Unit*>& unitList)
             {
-                targets.remove(GetCaster());
-                _failed = targets.empty();
+                unitList.remove(GetCaster());
+                _failed = unitList.empty();
             }
 
             // Second effect
-            void FilterTargets(std::list<WorldObject*>& targets)
+            void FilterTargets(std::list<Unit*>& unitList)
             {
                 // Select valid targets for jump
-                targets.remove_if (DeathPlagueTargetSelector(GetCaster()));
-                if (!targets.empty())
+                unitList.remove_if (DeathPlagueTargetSelector(GetCaster()));
+                if (!unitList.empty())
                 {
-                    WorldObject* target = SelectRandomContainerElement(targets);
-                    targets.clear();
-                    targets.push_back(target);
+                    Unit* target = SelectRandomContainerElement(unitList);
+                    unitList.clear();
+                    unitList.push_back(target);
                 }
 
-                targets.push_back(GetCaster());
+                unitList.push_back(GetCaster());
             }
 
             void HandleScript(SpellEffIndex effIndex)
@@ -1842,8 +1847,8 @@ class spell_frost_giant_death_plague : public SpellScriptLoader
 
             void Register()
             {
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_frost_giant_death_plague_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ALLY);
-                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_frost_giant_death_plague_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_SRC_AREA_ALLY);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_frost_giant_death_plague_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_AREA_ALLY_SRC);
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_frost_giant_death_plague_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_AREA_ALLY_SRC);
                 OnEffectHitTarget += SpellEffectFn(spell_frost_giant_death_plague_SpellScript::HandleScript, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
             }
 
@@ -1892,11 +1897,9 @@ class spell_icc_harvest_blight_specimen : public SpellScriptLoader
 class AliveCheck
 {
     public:
-        bool operator()(WorldObject* object) const
+        bool operator()(Unit* unit)
         {
-            if (Unit* unit = object->ToUnit())
-                return unit->isAlive();
-            return true;
+            return unit->isAlive();
         }
 };
 
@@ -1909,10 +1912,10 @@ class spell_svalna_revive_champion : public SpellScriptLoader
         {
             PrepareSpellScript(spell_svalna_revive_champion_SpellScript);
 
-            void RemoveAliveTarget(std::list<WorldObject*>& targets)
+            void RemoveAliveTarget(std::list<Unit*>& unitList)
             {
-                targets.remove_if (AliveCheck());
-                SkyFire::RandomResizeList(targets, 2);
+                unitList.remove_if(AliveCheck());
+                Trinity::RandomResizeList(unitList, 2);
             }
 
             void Land(SpellEffIndex /*effIndex*/)
@@ -1932,6 +1935,7 @@ class spell_svalna_revive_champion : public SpellScriptLoader
 
             void Register()
             {
+                OnUnitTargetSelect += SpellUnitTargetFn(spell_svalna_revive_champion_SpellScript::RemoveAliveTarget, EFFECT_0, TARGET_UNIT_AREA_ENTRY_DST);
                 OnEffectHit += SpellEffectFn(spell_svalna_revive_champion_SpellScript::Land, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
             }
         };
@@ -1995,7 +1999,7 @@ class at_icc_saurfang_portal : public AreaTriggerScript
                 instance->SetData(DATA_COLDFLAME_JETS, IN_PROGRESS);
                 std::list<Creature*> traps;
                 GetCreatureListWithEntryInGrid(traps, player, NPC_FROST_FREEZE_TRAP, 120.0f);
-                traps.sort(SkyFire::ObjectDistanceOrderPred(player));
+                traps.sort(Trinity::ObjectDistanceOrderPred(player));
                 bool instant = false;
                 for (std::list<Creature*>::iterator itr = traps.begin(); itr != traps.end(); ++itr)
                 {

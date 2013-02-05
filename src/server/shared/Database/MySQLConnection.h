@@ -1,20 +1,25 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #include <ace/Activation_Queue.h>
@@ -31,109 +36,121 @@ class PreparedStatement;
 class MySQLPreparedStatement;
 class PingOperation;
 
-enum ConnectionFlags
-{
-    CONNECTION_ASYNC = 0x1,
-    CONNECTION_SYNCH = 0x2,
-    CONNECTION_BOTH = CONNECTION_ASYNC | CONNECTION_SYNCH
+enum ConnectionFlags {
+	CONNECTION_ASYNC = 0x1, CONNECTION_SYNCH = 0x2,
 };
 
-struct MySQLConnectionInfo
-{
-    MySQLConnectionInfo() {}
-    MySQLConnectionInfo(const std::string& infoString)
-    {
-        Tokens tokens(infoString, ';');
+struct MySQLConnectionInfo {
+	MySQLConnectionInfo() {
+	}
+	MySQLConnectionInfo(const std::string& infoString) {
+		Tokens tokens(infoString, ';');
 
-        if (tokens.size() != 5)
-            return;
+		if (tokens.size() != 5)
+			return;
 
-        uint8 i = 0;
+		uint8 i = 0;
 
-        host.assign(tokens[i++]);
-        port_or_socket.assign(tokens[i++]);
-        user.assign(tokens[i++]);
-        password.assign(tokens[i++]);
-        database.assign(tokens[i++]);
-    }
+		host.assign(tokens[i++]);
+		port_or_socket.assign(tokens[i++]);
+		user.assign(tokens[i++]);
+		password.assign(tokens[i++]);
+		database.assign(tokens[i++]);
+	}
 
-    std::string user;
-    std::string password;
-    std::string database;
-    std::string host;
-    std::string port_or_socket;
+	std::string user;
+	std::string password;
+	std::string database;
+	std::string host;
+	std::string port_or_socket;
 };
 
-typedef std::map<uint32 /*index*/, std::pair<std::string /*query*/, ConnectionFlags /*sync/async*/> > PreparedStatementMap;
+struct PreparedStatementTable {
+	uint32 index;
+	const char* query;
+	ConnectionFlags type;
+};
 
-class MySQLConnection
-{
-    template <class T> friend class DatabaseWorkerPool;
-    friend class PingOperation;
+typedef std::map<uint32 /*index*/,
+		std::pair<const char* /*query*/, ConnectionFlags /*sync/async*/> > PreparedStatementMap;
 
-    public:
-        MySQLConnection(MySQLConnectionInfo& connInfo);                               //! Constructor for synchronous connections.
-        MySQLConnection(ACE_Activation_Queue* queue, MySQLConnectionInfo& connInfo);  //! Constructor for asynchronous connections.
-        virtual ~MySQLConnection();
+#define PREPARE_STATEMENT(a, b, c) m_queries[a] = std::make_pair(strdup(b), c);
 
-        virtual bool Open();
-        void Close();
+class MySQLConnection {
+	template<class T> friend class DatabaseWorkerPool;
+	friend class PingOperation;
 
-    public:
-        bool Execute(const char* sql);
-        bool Execute(PreparedStatement* stmt);
-        ResultSet* Query(const char* sql);
-        PreparedResultSet* Query(PreparedStatement* stmt);
-        bool _Query(const char *sql, MYSQL_RES **pResult, MYSQL_FIELD **pFields, uint64* pRowCount, uint32* pFieldCount);
-        bool _Query(PreparedStatement* stmt, MYSQL_RES **pResult, uint64* pRowCount, uint32* pFieldCount);
+public:
+	MySQLConnection(MySQLConnectionInfo& connInfo); //! Constructor for synchronous connections.
+	MySQLConnection(ACE_Activation_Queue* queue, MySQLConnectionInfo& connInfo); //! Constructor for asynchronous connections.
+	virtual ~MySQLConnection();
 
-        void BeginTransaction();
-        void RollbackTransaction();
-        void CommitTransaction();
-        bool ExecuteTransaction(SQLTransaction& transaction);
+	virtual bool Open();
+	void Close();
 
-        operator bool () const { return m_Mysql != NULL; }
-        void Ping() { mysql_ping(m_Mysql); }
+public:
+	bool Execute(const char* sql);
+	bool Execute(PreparedStatement* stmt);
+	ResultSet* Query(const char* sql);
+	PreparedResultSet* Query(PreparedStatement* stmt);
+	bool _Query(const char *sql, MYSQL_RES **pResult, MYSQL_FIELD **pFields,
+			uint64* pRowCount, uint32* pFieldCount);
+	bool _Query(PreparedStatement* stmt, MYSQL_RES **pResult, uint64* pRowCount,
+			uint32* pFieldCount);
 
-        uint32 GetLastError() { return mysql_errno(m_Mysql); }
+	void BeginTransaction();
+	void RollbackTransaction();
+	void CommitTransaction();
+	bool ExecuteTransaction(SQLTransaction& transaction);
 
-    protected:
-        bool LockIfReady()
-        {
-            /// Tries to acquire lock. If lock is acquired by another thread
-            /// the calling parent will just try another connection
-            return m_Mutex.tryacquire() != -1;
-        }
+	operator bool() const {
+		return m_Mysql != NULL;
+	}
+	void Ping() {
+		mysql_ping(m_Mysql);
+	}
 
-        void Unlock()
-        {
-            /// Called by parent databasepool. Will let other threads access this connection
-            m_Mutex.release();
-        }
+	uint32 GetLastError() {
+		return mysql_errno(m_Mysql);
+	}
 
-        MYSQL* GetHandle()  { return m_Mysql; }
-        MySQLPreparedStatement* GetPreparedStatement(uint32 index);
-        void PrepareStatement(uint32 index, const char* sql, ConnectionFlags flags);
+protected:
+	bool LockIfReady() {
+		/// Tries to acquire lock. If lock is acquired by another thread
+		/// the calling parent will just try another connection
+		return m_Mutex.tryacquire() != -1;
+	}
 
-        bool PrepareStatements();
-        virtual void DoPrepareStatements() = 0;
+	void Unlock() {
+		/// Called by parent databasepool. Will let other threads access this connection
+		m_Mutex.release();
+	}
 
-    protected:
-        std::vector<MySQLPreparedStatement*> m_stmts;         //! PreparedStatements storage
-        PreparedStatementMap                 m_queries;       //! Query storage
-        bool                                 m_reconnecting;  //! Are we reconnecting?
-        bool                                 m_prepareError;  //! Was there any error while preparing statements?
+	MYSQL* GetHandle() {
+		return m_Mysql;
+	}
+	MySQLPreparedStatement* GetPreparedStatement(uint32 index);
+	void PrepareStatement(uint32 index, const char* sql, ConnectionFlags flags);
 
-    private:
-        bool _HandleMySQLErrno(uint32 errNo);
+	bool PrepareStatements();
+	virtual void DoPrepareStatements() = 0;
 
-    private:
-        ACE_Activation_Queue* m_queue;                      //! Queue shared with other asynchronous connections.
-        DatabaseWorker*       m_worker;                     //! Core worker task.
-        MYSQL *               m_Mysql;                      //! MySQL Handle.
-        MySQLConnectionInfo&  m_connectionInfo;             //! Connection info (used for logging)
-        ConnectionFlags       m_connectionFlags;            //! Connection flags (for preparing relevant statements)
-        ACE_Thread_Mutex      m_Mutex;
+protected:
+	std::vector<MySQLPreparedStatement*> m_stmts; //! PreparedStatements storage
+	PreparedStatementMap m_queries; //! Query storage
+	bool m_reconnecting; //! Are we reconnecting?
+	bool m_prepareError; //! Was there any error while preparing statements?
+
+private:
+	bool _HandleMySQLErrno(uint32 errNo);
+
+private:
+	ACE_Activation_Queue* m_queue; //! Queue shared with other asynchronous connections.
+	DatabaseWorker* m_worker; //! Core worker task.
+	MYSQL * m_Mysql; //! MySQL Handle.
+	MySQLConnectionInfo& m_connectionInfo; //! Connection info (used for logging)
+	ConnectionFlags m_connectionFlags; //! Connection flags (for preparing relevant statements)
+	ACE_Thread_Mutex m_Mutex;
 };
 
 #endif

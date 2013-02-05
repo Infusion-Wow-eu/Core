@@ -22,11 +22,6 @@
 extern uint		mysql_port;
 extern char *	mysql_unix_port;
 
-/*
- Note: CLIENT_CAPABILITIES is also defined in sql/client_settings.h.
- When adding capabilities here, consider if they should be also added to
- the server's version.
-*/
 #define CLIENT_CAPABILITIES (CLIENT_LONG_PASSWORD | \
                              CLIENT_LONG_FLAG |     \
                              CLIENT_TRANSACTIONS |  \

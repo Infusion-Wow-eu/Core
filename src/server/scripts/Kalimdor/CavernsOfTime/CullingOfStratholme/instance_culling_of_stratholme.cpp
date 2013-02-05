@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -33,7 +33,7 @@
 
 enum Texts
 {
-    SAY_CRATES_COMPLETED = 0,
+    SAY_CRATES_COMPLETED    = 0,
 };
 
 Position const ChromieSummonPos = {1813.298f, 1283.578f, 142.3258f, 3.878161f};
@@ -86,7 +86,7 @@ class instance_culling_of_stratholme : public InstanceMapScript
                 data << uint32(WORLDSTATE_TIME_GUARDIAN_SHOW) << uint32(0);
             }
 
-            void OnCreatureCreate(Creature* creature)
+            void OnCreatureCreate(Creature* creature, bool /*add*/)
             {
                 switch (creature->GetEntry())
                 {
@@ -114,7 +114,7 @@ class instance_culling_of_stratholme : public InstanceMapScript
                 }
             }
 
-            void OnGameObjectCreate(GameObject* go)
+            void OnGameObjectCreate(GameObject* go, bool /*add*/)
             {
                 switch (go->GetEntry())
                 {
@@ -135,6 +135,8 @@ class instance_culling_of_stratholme : public InstanceMapScript
                     case GO_MALGANIS_CHEST_N:
                     case GO_MALGANIS_CHEST_H:
                         _malGanisChestGUID = go->GetGUID();
+                        if (GameObject* go = instance->GetGameObject(_malGanisChestGUID))
+                            go->SetLootState(GO_JUST_DEACTIVATED);
                         if (_encounterState[3] == DONE)
                             go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_INTERACT_COND);
                         break;
@@ -167,8 +169,13 @@ class instance_culling_of_stratholme : public InstanceMapScript
                                 break;
                             case DONE:
                                 HandleGameObject(_exitGateGUID, true);
+                                if (GameObject* gov = instance->GetGameObject(_exitGateGUID))
+                                    gov->SetGoState(GO_STATE_ACTIVE);
                                 if (GameObject* go = instance->GetGameObject(_malGanisChestGUID))
+                                {
                                     go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_INTERACT_COND);
+                                    go->SetLootState(GO_ACTIVATED);
+                                }
                                 break;
                         }
                         break;

@@ -1,209 +1,241 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #include "ScriptPCH.h"
 
 enum Spells
 {
-    SPELL_ARCANE_EXPLOSION                        = 46608,
-    SPELL_CONE_OF_COLD                            = 38384,
-    SPELL_FIREBALL                                = 46988,
-    SPELL_FROSTBOLT                               = 46987
+    SPELL_ARCANE_EXPLOSION = 46608, SPELL_CONE_OF_COLD = 38384, SPELL_FIREBALL = 46988, SPELL_FROSTBOLT = 46987
 };
 
 enum Yells
 {
-    YELL_AGGRO                                    = -1810023,
-    YELL_EVADE                                    = -1810024
+    YELL_AGGRO = -2100019, YELL_EVADE = -2100020
 };
 
 enum Creatures
 {
-    NPC_WATER_ELEMENTAL                           = 25040
+    NPC_WATER_ELEMENTAL = 25040
 };
 
 enum WaterElementalSpells
 {
-    SPELL_WATERBOLT                               = 46983
+    SPELL_WATERBOLT = 46983
 };
 
-class mob_water_elemental : public CreatureScript
+class mob_water_elemental: public CreatureScript
 {
 public:
-    mob_water_elemental() : CreatureScript("mob_water_elemental") { }
-
-    struct mob_water_elementalAI : public ScriptedAI
+    mob_water_elemental () :
+            CreatureScript("mob_water_elemental")
     {
-        mob_water_elementalAI(Creature* creature) : ScriptedAI(creature) {}
+    }
 
-        uint32 waterBoltTimer;
-        uint64 balindaGUID;
-        uint32 resetTimer;
-
-        void Reset()
+    struct mob_water_elementalAI: public ScriptedAI
+    {
+        mob_water_elementalAI (Creature *c) :
+                ScriptedAI(c)
         {
-            waterBoltTimer            = 3 * IN_MILLISECONDS;
-            resetTimer                = 5 * IN_MILLISECONDS;
         }
 
-        void UpdateAI(const uint32 diff)
+        uint32 uiWaterBoltTimer;
+        uint64 uiBalindaGUID;
+        uint32 uiResetTimer;
+
+        void Reset ()
+        {
+            uiWaterBoltTimer = 3 * IN_MILLISECONDS;
+            uiResetTimer = 5 * IN_MILLISECONDS;
+        }
+
+        void UpdateAI (const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
 
-            if (waterBoltTimer < diff)
+            if (uiWaterBoltTimer < diff)
             {
                 DoCast(me->getVictim(), SPELL_WATERBOLT);
-                waterBoltTimer = 5 * IN_MILLISECONDS;
-            } else waterBoltTimer -= diff;
+                uiWaterBoltTimer = 5 * IN_MILLISECONDS;
+            }
+            else
+                uiWaterBoltTimer -= diff;
 
             // check if creature is not outside of building
-            if (resetTimer < diff)
+            if (uiResetTimer < diff)
             {
-                if (Creature* balinda = Unit::GetCreature(*me, balindaGUID))
-                    if (me->GetDistance2d(balinda->GetHomePosition().GetPositionX(), balinda->GetHomePosition().GetPositionY()) > 50)
+                if (Creature *pBalinda = Unit::GetCreature(*me, uiBalindaGUID))
+                    if (me->GetDistance2d(pBalinda->GetHomePosition().GetPositionX(), pBalinda->GetHomePosition().GetPositionY()) > 50)
                         EnterEvadeMode();
-                    resetTimer = 5 * IN_MILLISECONDS;
-            } else resetTimer -= diff;
+                uiResetTimer = 5 * IN_MILLISECONDS;
+            }
+            else
+                uiResetTimer -= diff;
 
             DoMeleeAttackIfReady();
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI *GetAI (Creature *creature) const
     {
         return new mob_water_elementalAI(creature);
     }
 };
 
-class boss_balinda : public CreatureScript
+class boss_balinda: public CreatureScript
 {
 public:
-    boss_balinda() : CreatureScript("boss_balinda") { }
-
-    struct boss_balindaAI : public ScriptedAI
+    boss_balinda () :
+            CreatureScript("boss_balinda")
     {
-        boss_balindaAI(Creature* creature) : ScriptedAI(creature), summons(me) {}
+    }
 
-        uint32 arcaneExplosionTimer;
-        uint32 coneOfColdTimer;
-        uint32 fireBoltTimer;
-        uint32 frostboltTimer;
-        uint32 resetTimer;
-        uint32 waterElementalTimer;
-
-        SummonList summons;
-
-        void Reset()
+    struct boss_balindaAI: public ScriptedAI
+    {
+        boss_balindaAI (Creature *c) :
+                ScriptedAI(c), Summons(me)
         {
-            arcaneExplosionTimer      = urand(5 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
-            coneOfColdTimer           = 8 * IN_MILLISECONDS;
-            fireBoltTimer             = 1 * IN_MILLISECONDS;
-            frostboltTimer            = 4 * IN_MILLISECONDS;
-            resetTimer                = 5 * IN_MILLISECONDS;
-            waterElementalTimer       = 0;
-
-            summons.DespawnAll();
         }
 
-        void EnterCombat(Unit* /*who*/)
+        uint32 uiArcaneExplosionTimer;
+        uint32 uiConeOfColdTimer;
+        uint32 uiFireBoltTimer;
+        uint32 uiFrostboltTimer;
+        uint32 uiResetTimer;
+        uint32 uiWaterElementalTimer;
+
+        SummonList Summons;
+
+        void Reset ()
+        {
+            uiArcaneExplosionTimer = urand(5 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
+            uiConeOfColdTimer = 8 * IN_MILLISECONDS;
+            uiFireBoltTimer = 1 * IN_MILLISECONDS;
+            uiFrostboltTimer = 4 * IN_MILLISECONDS;
+            uiResetTimer = 5 * IN_MILLISECONDS;
+            uiWaterElementalTimer = 0;
+
+            Summons.DespawnAll();
+        }
+
+        void EnterCombat (Unit * /*who*/)
         {
             DoScriptText(YELL_AGGRO, me);
         }
 
-        void JustRespawned()
+        void JustRespawned ()
         {
             Reset();
         }
 
-        void JustSummoned(Creature* summoned)
+        void JustSummoned (Creature* summoned)
         {
-            CAST_AI(mob_water_elemental::mob_water_elementalAI, summoned->AI())->balindaGUID = me->GetGUID();
+            CAST_AI(mob_water_elemental::mob_water_elementalAI, summoned->AI())->uiBalindaGUID = me->GetGUID();
             summoned->AI()->AttackStart(SelectTarget(SELECT_TARGET_RANDOM, 0, 50, true));
             summoned->setFaction(me->getFaction());
-            summons.Summon(summoned);
+            Summons.Summon(summoned);
         }
 
-        void JustDied(Unit* /*Killer*/)
+        void JustDied (Unit* /*Killer*/)
         {
-            summons.DespawnAll();
+            Summons.DespawnAll();
         }
 
-        void UpdateAI(const uint32 diff)
+        void UpdateAI (const uint32 diff)
         {
             if (!UpdateVictim())
                 return;
 
-            if (waterElementalTimer < diff)
+            if (uiWaterElementalTimer < diff)
             {
-                if (summons.empty())
+                if (Summons.empty())
                     me->SummonCreature(NPC_WATER_ELEMENTAL, 0, 0, 0, 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 45 * IN_MILLISECONDS);
-                waterElementalTimer = 50 * IN_MILLISECONDS;
-            } else waterElementalTimer -= diff;
+                uiWaterElementalTimer = 50 * IN_MILLISECONDS;
+            }
+            else
+                uiWaterElementalTimer -= diff;
 
-            if (arcaneExplosionTimer < diff)
+            if (uiArcaneExplosionTimer < diff)
             {
                 DoCast(me->getVictim(), SPELL_ARCANE_EXPLOSION);
-                arcaneExplosionTimer =  urand(5 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
-            } else arcaneExplosionTimer -= diff;
+                uiArcaneExplosionTimer = urand(5 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
+            }
+            else
+                uiArcaneExplosionTimer -= diff;
 
-            if (coneOfColdTimer < diff)
+            if (uiConeOfColdTimer < diff)
             {
                 DoCast(me->getVictim(), SPELL_CONE_OF_COLD);
-                coneOfColdTimer = urand(10 * IN_MILLISECONDS, 20 * IN_MILLISECONDS);
-            } else coneOfColdTimer -= diff;
+                uiConeOfColdTimer = urand(10 * IN_MILLISECONDS, 20 * IN_MILLISECONDS);
+            }
+            else
+                uiConeOfColdTimer -= diff;
 
-            if (fireBoltTimer < diff)
+            if (uiFireBoltTimer < diff)
             {
                 DoCast(me->getVictim(), SPELL_FIREBALL);
-                fireBoltTimer = urand(5 * IN_MILLISECONDS, 9 * IN_MILLISECONDS);
-            } else fireBoltTimer -= diff;
+                uiFireBoltTimer = urand(5 * IN_MILLISECONDS, 9 * IN_MILLISECONDS);
+            }
+            else
+                uiFireBoltTimer -= diff;
 
-            if (frostboltTimer < diff)
+            if (uiFrostboltTimer < diff)
             {
                 DoCast(me->getVictim(), SPELL_FROSTBOLT);
-                frostboltTimer = urand(4 * IN_MILLISECONDS, 12 * IN_MILLISECONDS);
-            } else frostboltTimer -= diff;
+                uiFrostboltTimer = urand(4 * IN_MILLISECONDS, 12 * IN_MILLISECONDS);
+            }
+            else
+                uiFrostboltTimer -= diff;
 
             // check if creature is not outside of building
-            if (resetTimer < diff)
+            if (uiResetTimer < diff)
             {
                 if (me->GetDistance2d(me->GetHomePosition().GetPositionX(), me->GetHomePosition().GetPositionY()) > 50)
                 {
                     EnterEvadeMode();
                     DoScriptText(YELL_EVADE, me);
                 }
-                resetTimer = 5 * IN_MILLISECONDS;
-            } else resetTimer -= diff;
+                uiResetTimer = 5 * IN_MILLISECONDS;
+            }
+            else
+                uiResetTimer -= diff;
 
             DoMeleeAttackIfReady();
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const
+    CreatureAI *GetAI (Creature *creature) const
     {
         return new boss_balindaAI(creature);
     }
 };
 
-void AddSC_boss_balinda()
+void AddSC_boss_balinda ()
 {
-    new boss_balinda();
-    new mob_water_elemental();
-};
+    new boss_balinda;
+    new mob_water_elemental;
+}
+;

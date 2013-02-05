@@ -1,19 +1,25 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 #ifdef _WIN32
@@ -28,7 +34,6 @@
 #ifdef main
 #undef main
 #endif //main
-
 #if !defined(WINADVAPI)
 #if !defined(_ADVAPI32_)
 #define WINADVAPI DECLSPEC_IMPORT
@@ -64,19 +69,19 @@ bool WinServiceInstall()
             SC_HANDLE service;
             std::strcat(path, " --service");
             service = CreateService(serviceControlManager,
-                serviceName,                                // name of service
-                serviceLongName,                            // service name to display
-                SERVICE_ALL_ACCESS,                         // desired access
-                                                            // service type
-                SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
-                SERVICE_AUTO_START,                         // start type
-                SERVICE_ERROR_IGNORE,                       // error control type
-                path,                                       // service's binary
-                0,                                          // no load ordering group
-                0,                                          // no tag identifier
-                0,                                          // no dependencies
-                0,                                          // LocalSystem account
-                0);                                         // no password
+                    serviceName, // name of service
+                    serviceLongName,// service name to display
+                    SERVICE_ALL_ACCESS,// desired access
+                                       // service type
+                    SERVICE_WIN32_OWN_PROCESS | SERVICE_INTERACTIVE_PROCESS,
+                    SERVICE_AUTO_START,// start type
+                    SERVICE_ERROR_IGNORE,// error control type
+                    path,// service's binary
+                    0,// no load ordering group
+                    0,// no tag identifier
+                    0,// no dependencies
+                    0,// LocalSystem account
+                    0);// no password
             if (service)
             {
                 advapi32 = GetModuleHandle("ADVAPI32.DLL");
@@ -98,9 +103,9 @@ bool WinServiceInstall()
                 SERVICE_DESCRIPTION sdBuf;
                 sdBuf.lpDescription = serviceDescription;
                 ChangeService_Config2(
-                    service,                                // handle to service
-                    SERVICE_CONFIG_DESCRIPTION,             // change: description
-                    &sdBuf);                                // new data
+                        service, // handle to service
+                        SERVICE_CONFIG_DESCRIPTION,// change: description
+                        &sdBuf);// new data
 
                 SC_ACTION _action[1];
                 _action[0].Type = SC_ACTION_RESTART;
@@ -111,9 +116,9 @@ bool WinServiceInstall()
                 sfa.cActions = 1;
                 sfa.dwResetPeriod =INFINITE;
                 ChangeService_Config2(
-                    service,                                // handle to service
-                    SERVICE_CONFIG_FAILURE_ACTIONS,         // information level
-                    &sfa);                                  // new data
+                        service,// handle to service
+                        SERVICE_CONFIG_FAILURE_ACTIONS,// information level
+                        &sfa);// new data
 
                 CloseServiceHandle(service);
             }
@@ -130,14 +135,14 @@ bool WinServiceUninstall()
     if (serviceControlManager)
     {
         SC_HANDLE service = OpenService(serviceControlManager,
-            serviceName, SERVICE_QUERY_STATUS | DELETE);
+                serviceName, SERVICE_QUERY_STATUS | DELETE);
         if (service)
         {
             SERVICE_STATUS serviceStatus2;
             if (QueryServiceStatus(service, &serviceStatus2))
             {
                 if (serviceStatus2.dwCurrentState == SERVICE_STOPPED)
-                    DeleteService(service);
+                DeleteService(service);
             }
             CloseServiceHandle(service);
         }
@@ -152,35 +157,35 @@ void WINAPI ServiceControlHandler(DWORD controlCode)
     switch (controlCode)
     {
         case SERVICE_CONTROL_INTERROGATE:
-            break;
+        break;
 
         case SERVICE_CONTROL_SHUTDOWN:
         case SERVICE_CONTROL_STOP:
-            serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
-            SetServiceStatus(serviceStatusHandle, &serviceStatus);
+        serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+        SetServiceStatus(serviceStatusHandle, &serviceStatus);
 
-            m_ServiceStatus = 0;
-            return;
+        m_ServiceStatus = 0;
+        return;
 
         case SERVICE_CONTROL_PAUSE:
-            m_ServiceStatus = 2;
-            serviceStatus.dwCurrentState = SERVICE_PAUSED;
-            SetServiceStatus(serviceStatusHandle, &serviceStatus);
-            break;
+        m_ServiceStatus = 2;
+        serviceStatus.dwCurrentState = SERVICE_PAUSED;
+        SetServiceStatus(serviceStatusHandle, &serviceStatus);
+        break;
 
         case SERVICE_CONTROL_CONTINUE:
-            serviceStatus.dwCurrentState = SERVICE_RUNNING;
-            SetServiceStatus(serviceStatusHandle, &serviceStatus);
-            m_ServiceStatus = 1;
-            break;
+        serviceStatus.dwCurrentState = SERVICE_RUNNING;
+        SetServiceStatus(serviceStatusHandle, &serviceStatus);
+        m_ServiceStatus = 1;
+        break;
 
         default:
-            if ( controlCode >= 128 && controlCode <= 255 )
-                // user defined control code
-                break;
-            else
-                // unrecognized control code
-                break;
+        if ( controlCode >= 128 && controlCode <= 255 )
+        // user defined control code
+        break;
+        else
+        // unrecognized control code
+        break;
     }
 
     SetServiceStatus(serviceStatusHandle, &serviceStatus);
@@ -250,8 +255,8 @@ bool WinServiceRun()
 {
     SERVICE_TABLE_ENTRY serviceTable[] =
     {
-        { serviceName, ServiceMain },
-        { 0, 0 }
+        {	serviceName, ServiceMain},
+        {	0, 0}
     };
 
     if (!StartServiceCtrlDispatcher(serviceTable))

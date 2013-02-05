@@ -43,9 +43,9 @@
   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-  Acknowledgement 
-  Funding for the RFC Editor function is currently provided by the 
-  Internet Society. 
+  Acknowledgement
+  Funding for the RFC Editor function is currently provided by the
+  Internet Society.
 
  DESCRIPTION
   This file implements the Secure Hashing Algorithm 1 as

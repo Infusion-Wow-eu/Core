@@ -264,7 +264,7 @@ const char **my_error_unregister(int first, int last)
   /* Save the return value and free the header. */
   errmsgs= meh_p->get_errmsgs();
   my_free(meh_p);
-  
+
   return errmsgs;
 }
 

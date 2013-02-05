@@ -24,7 +24,7 @@
   SYNOPSIS
     my_open()
       FileName	Fully qualified file name
-      Flags	Read | write 
+      Flags	Read | write
       MyFlags	Special flags
 
   RETURN VALUE
@@ -99,7 +99,7 @@ int my_close(File fd, myf MyFlags)
 
 /*
   Register file in my_file_info[]
-   
+
   SYNOPSIS
     my_register_filename()
     fd			   File number opened, -1 if error on open
@@ -122,7 +122,7 @@ File my_register_filename(File fd, const char *FileName, enum file_type
   {
     if ((uint) fd >= my_file_limit)
     {
-#if !defined(HAVE_PREAD) 
+#if !defined(HAVE_PREAD)
       my_errno= EMFILE;
 #else
       thread_safe_increment(my_file_opened,&THR_LOCK_open);

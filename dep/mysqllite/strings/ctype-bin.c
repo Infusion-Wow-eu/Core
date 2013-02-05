@@ -1,15 +1,15 @@
 /* Copyright (c) 2002, 2011, Oracle and/or its affiliates. All rights reserved. & tommy@valley.ne.jp.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; version 2
    of the License.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
@@ -64,11 +64,11 @@ static uchar bin_char_array[] =
   240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255
 };
 
-static my_bool 
+static my_bool
 my_coll_init_8bit_bin(CHARSET_INFO *cs,
                       void *(*alloc)(size_t) __attribute__((unused)))
 {
-  cs->max_sort_char=255; 
+  cs->max_sort_char=255;
   return FALSE;
 }
 
@@ -156,7 +156,7 @@ static int my_strnncoll_8bit_bin(CHARSET_INFO * cs __attribute__((unused)),
 */
 
 static int my_strnncollsp_8bit_bin(CHARSET_INFO * cs __attribute__((unused)),
-                                   const uchar *a, size_t a_length, 
+                                   const uchar *a, size_t a_length,
                                    const uchar *b, size_t b_length,
                                    my_bool diff_if_only_endspace_difference)
 {
@@ -237,7 +237,7 @@ static int my_mb_wc_bin(CHARSET_INFO *cs __attribute__((unused)),
 {
   if (str >= end)
     return MY_CS_TOOSMALL;
-  
+
   *wc=str[0];
   return 1;
 }
@@ -263,7 +263,7 @@ void my_hash_sort_8bit_bin(CHARSET_INFO *cs __attribute__((unused)),
                            ulong *nr1, ulong *nr2)
 {
   const uchar *pos = key;
-  
+
   /*
      Remove trailing spaces. We have to do this to be able to compare
     'A ' and 'A' as identical
@@ -272,7 +272,7 @@ void my_hash_sort_8bit_bin(CHARSET_INFO *cs __attribute__((unused)),
 
   for (; pos < (uchar*) key ; pos++)
   {
-    nr1[0]^=(ulong) ((((uint) nr1[0] & 63)+nr2[0]) * 
+    nr1[0]^=(ulong) ((((uint) nr1[0] & 63)+nr2[0]) *
 	     ((uint)*pos)) + (nr1[0] << 8);
     nr2[0]+=3;
   }
@@ -282,12 +282,12 @@ void my_hash_sort_bin(CHARSET_INFO *cs __attribute__((unused)),
 		      const uchar *key, size_t len,ulong *nr1, ulong *nr2)
 {
   const uchar *pos = key;
-  
+
   key+= len;
-  
+
   for (; pos < (uchar*) key ; pos++)
   {
-    nr1[0]^=(ulong) ((((uint) nr1[0] & 63)+nr2[0]) * 
+    nr1[0]^=(ulong) ((((uint) nr1[0] & 63)+nr2[0]) *
 	     ((uint)*pos)) + (nr1[0] << 8);
     nr2[0]+=3;
   }
@@ -307,7 +307,7 @@ int my_wildcmp_bin(CHARSET_INFO *cs,
                    int escape, int w_one, int w_many)
 {
   int result= -1;			/* Not found, using wildcards */
-  
+
   while (wildstr != wildend)
   {
     while (*wildstr != w_many && *wildstr != w_one)
@@ -353,7 +353,7 @@ int my_wildcmp_bin(CHARSET_INFO *cs,
 	return(0);			/* match if w_many is last */
       if (str == str_end)
 	return(-1);
-      
+
       if ((cmp= *wildstr) == escape && wildstr+1 != wildend)
 	cmp= *++wildstr;
 

@@ -1,5 +1,5 @@
 ################################################
-# SkyFireEMU World Server configuration file   #
+# ArkCORE World Server configuration file   #
 ################################################
 [worldserver]
 
@@ -8,10 +8,10 @@
 #
 #    EXAMPLE CONFIG
 #    CONNECTIONS AND DIRECTORIES
+#    SCRIPTING SETTINGS
 #    PERFORMANCE SETTINGS
 #    SERVER LOGGING
 #    SERVER SETTINGS
-#    WARDEN SETTINGS
 #    PLAYER INTERACTION
 #    CREATURE SETTINGS
 #    CHAT SETTINGS
@@ -25,7 +25,12 @@
 #    NETWORK CONFIG
 #    CONSOLE AND REMOTE ACCESS
 #    CHARACTER DELETE OPTIONS
+#    CURRENCY SETTINGS
 #    CUSTOM SERVER OPTIONS
+#    WINTERGRASP CUSTOM OPTIONS
+#    AUCTIONHOUSE BOT CUSTOM OPTIONS
+#    IRC CLIENT OPTIONS
+#	 ANTICHEAT CONFIGURATION
 #
 ###################################################################################################
 
@@ -58,7 +63,7 @@ RealmID = 1
 #    DataDir
 #        Description: Data directory setting.
 #        Important:   DataDir needs to be quoted, as the string might contain space characters.
-#        Example:     "@prefix@/share/skyfirecore"
+#        Example:     "@prefix@/share/arkcore"
 #        Default:     "."
 
 DataDir = "."
@@ -70,7 +75,7 @@ DataDir = "."
 #                     Logs directory must exists, or log file creation will be disabled.
 #        Default:     "" - (Log files will be stored in the current path)
 
-LogsDir = ""
+LogsDir = "logs"
 
 #
 #    LoginDatabaseInfo
@@ -87,9 +92,9 @@ LogsDir = ""
 #                     "127.0.0.1;3306;username;password;world"      - (WorldDatabaseInfo)
 #                     "127.0.0.1;3306;username;password;characters" - (CharacterDatabaseInfo)
 
-LoginDatabaseInfo     = "127.0.0.1;3306;skyfire;skyfire;auth"
-WorldDatabaseInfo     = "127.0.0.1;3306;skyfire;skyfire;world"
-CharacterDatabaseInfo = "127.0.0.1;3306;skyfire;skyfire;characters"
+LoginDatabaseInfo     = "127.0.0.1;3306;arkania;arkania;auth"
+WorldDatabaseInfo     = "127.0.0.1;3306;arkania;arkania;world"
+CharacterDatabaseInfo = "127.0.0.1;3306;arkania;arkania;characters"
 
 #
 #    LoginDatabase.WorkerThreads
@@ -142,6 +147,22 @@ BindIP = "0.0.0.0"
 
 #
 ###################################################################################################
+
+###############################################################################
+# SCRIPTING SETTINGS
+#
+#    Locale
+#        Setting for current (DBC) locale to use
+#
+#    EventAI Error reporting
+#        Default: 0 - Only startup
+#                 1 - Startup errors and Runtime event errors
+#                 2 - Startup errors, Runtime event errors, and Creation errors
+#
+###############################################################################
+
+Locale = 0
+EAIErrorLevel = 2
 
 ###################################################################################################
 # PERFORMANCE SETTINGS
@@ -282,7 +303,7 @@ vmap.enableHeight = 1
 #    vmap.ignoreSpellIds
 #        Description: These spells are ignored for LoS calculation.
 #                     List of ids with delimiter ','.
-#        Example:     "7720, 1337"
+#        Example:     "7720,1337"
 #        Default:     "7720"
 
 vmap.ignoreSpellIds = "7720"
@@ -311,20 +332,6 @@ vmap.enableIndoorCheck = 1
 #                     0 - (Disabled, Less position precision but less CPU usage)
 
 DetectPosCollision = 1
-
-#    mmap.enablePathFinding
-#        Description: Enable/Disable pathfinding using mmaps
-#        Default:     1 - (Enabled)
-#                     0 - (Disabled)
-
-mmap.enablePathFinding = 1
-
-#
-#    mmap.ignoreMapIds
-#        Disable mmap pathfinding on the listed maps.
-#        List of map ids with delimiter ','
-
-mmap.ignoreMapIds = "638"
 
 #
 #    TargetPosRecalculateRange
@@ -467,7 +474,7 @@ LogFileLevel = 0
 #                   8 - Anything related to C++ AI, instance scripts, etc.
 #                  16 - Anything related to DB AI, such as SAI, EAI, CreatureAI
 #                  32 - Anything related to DB map scripts
-#                  64 - Anything related to network input/output, 
+#                  64 - Anything related to network input/output,
 #                        such as packet handlers and netcode logs
 #                 128 - Anything related to the spellsystem and aurasystem
 #                 256 - Anything related to the achievement system
@@ -489,7 +496,6 @@ LogFileLevel = 0
 #             2097152 - Anything related to guilds
 #             4194304 - Anything related to transports
 #             8388608 - Incoming/outgoing Opcodes
-#             8388608 - Anything related to Warden anti cheat
 #
 #                       Simply add the values together to create a bitmask.
 #                       For more info see enum DebugLogFilters in Log.h
@@ -574,7 +580,7 @@ GmLogFile = "GM.log"
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-GmLogTimestamp = 0
+GmLogTimestamp = 1
 
 #
 #    GmLogPerAccount
@@ -583,7 +589,7 @@ GmLogTimestamp = 0
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-GmLogPerAccount = 0
+GmLogPerAccount = 1
 
 #
 #    RaLogFile
@@ -616,7 +622,7 @@ ArenaLog.ExtendedInfo = 0
 #        Example:     "SQLDev.log"    - (Enabled)
 #        Default:      ""             - (Disabled)
 
-SQLDeveloperLogFile = ""
+SQLDeveloperLogFile = "SQLDev.log"
 
 #
 #    SQLDriverLogFile
@@ -624,7 +630,7 @@ SQLDeveloperLogFile = ""
 #        Example:     "SQLDriver.log" - (Enabled)
 #        Default:      ""             - (Disabled)
 
-SQLDriverLogFile = ""
+SQLDriverLogFile = "sqldriver.log"
 
 #
 #    SQLDriverQueryLogging
@@ -724,6 +730,7 @@ LogDB.Chat = 0
 
 ChatLogFile = "Chat.log"
 
+#
 #    ChatLogTimestamp
 #        Description: Append timestamp to the chat log file name.
 #                     Logname_YYYY-MM-DD_HH-MM-SS.Ext for Logname.Ext
@@ -762,7 +769,6 @@ ChatLogs.SysChan = 0
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-
 ChatLogs.Party = 0
 
 #
@@ -770,7 +776,6 @@ ChatLogs.Party = 0
 #        Description: Log raid chat.
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
-
 
 ChatLogs.Raid = 0
 
@@ -865,7 +870,7 @@ RealmZone = 1
 #                     creation and forces rename request if not allowed symbols are used
 #        Default:     0 - (Disable, Limited server timezone dependent client check)
 #                     1 - (Enabled, Strictly basic Latin characters)
-#                     2 - (Enabled, Strictly realm zone specific, See RealmZone setting, 
+#                     2 - (Enabled, Strictly realm zone specific, See RealmZone setting,
 #                         Note: Client needs to have the appropriate fonts installed which support
 #                         the charset. For non-official localization, custom fonts need to be
 #                         placed in clientdir/Fonts.
@@ -879,7 +884,7 @@ StrictPlayerNames = 0
 #                     Prevents charter creation if not allowed symbols are used.
 #        Default:     0 - (Disable, Limited server timezone dependent client check)
 #                     1 - (Enabled, Strictly basic Latin characters)
-#                     2 - (Enabled, Strictly realm zone specific, See RealmZone setting, 
+#                     2 - (Enabled, Strictly realm zone specific, See RealmZone setting,
 #                         Note: Client needs to have the appropriate fonts installed which support
 #                         the charset. For non-official localization, custom fonts need to be
 #                         placed in clientdir/Fonts.
@@ -893,7 +898,7 @@ StrictCharterNames = 0
 #                     Prevents pet naming if not allowed symbols are used.
 #        Default:     0 - (Disable, Limited server timezone dependent client check)
 #                     1 - (Enabled, Strictly basic Latin characters)
-#                     2 - (Enabled, Strictly realm zone specific, See RealmZone setting, 
+#                     2 - (Enabled, Strictly realm zone specific, See RealmZone setting,
 #                         Note: Client needs to have the appropriate fonts installed which support
 #                         the charset. For non-official localization, custom fonts need to be
 #                         placed in clientdir/Fonts.
@@ -1022,12 +1027,11 @@ CharacterCreating.Disabled.ClassMask = 0
 #        Default:     50
 
 CharactersPerAccount = 50
-
 #
 #    CharactersPerRealm
 #        Description: Limit number of characters per account on this realm.
-#        Range:       1-12
-#        Default:     12 - (Client limitation)
+#        Range:       1-10
+#        Default:     10 - (Client limitation)
 
 CharactersPerRealm = 10
 
@@ -1100,53 +1104,11 @@ StartHeroicPlayerLevel = 55
 StartPlayerMoney = 0
 
 #
-#    MaxHonorPoints
-#        Description: Maximum honor points a character can have.
-#        Default:     75000
-
-MaxHonorPoints = 75000
-
-#
-#    StartHonorPoints
-#        Description: Amount of honor points that characters have after creation.
-#        Default:     0
-
-StartHonorPoints = 0
-
-#
-#    MaxConquestPoints
-#        Description: Maximum conquest points a character can have.
-#        Default:     4000
-
-MaxConquestPoints = 4000
-
-#
-#    StartConquestPoints
-#        Description: Amount of conquest points that characters has after creation.
-#        Default:     0
-
-StartConquestPoints = 0
-
-#
-#    MaxJusticePoints
-#        Description: Maximum justice points a character can have.
-#        Default:     4000
-
-MaxJusticePoints = 4000
-
-#
-#    StartJusticePoints
-#        Description: Amount of justice points that characters has after creation.
-#        Default:     0
-
-StartJusticePoints = 0
-
-#
 #    MaxArenaPoints
 #        Description: Maximum arena points a character can have.
-#        Default:     10000
+#        Default:     4000
 
-MaxArenaPoints = 10000
+MaxArenaPoints = 4000
 
 #
 #    StartArenaPoints
@@ -1300,22 +1262,6 @@ Quests.HighLevelHideDiff = 7
 Quests.IgnoreRaid = 0
 
 #
-#    Quests.IgnoreAutoAccept
-#        Description: Ignore auto accept flag. Clients will have to manually accept all quests.
-#        Default:     0 - (Disabled, DB values determine if quest is marked auto accept or not.)
-#                     1 - (Enabled, clients will not be told to automatically accept any quest.)
-
-Quests.IgnoreAutoAccept = 0
-
-#
-#    Quests.IgnoreAutoComplete
-#        Description: Ignore auto complete flag. Clients will have to manually complete all quests.
-#        Default:     0 - (Disabled, DB values determine if quest is marked auto complete or not.)
-#                     1 - (Enabled, clients will not be told to automatically complete any quest.)
-
-Quests.IgnoreAutoComplete = 0
-
-#
 #    Guild.EventLogRecordsCount
 #        Description: Number of log entries for guild events that are stored per guild. Old entries
 #                     will be overwritten if the number of log entries exceed the configured value.
@@ -1337,11 +1283,9 @@ Guild.BankEventLogRecordsCount = 25
 #
 #    GuildAdvancement.Enabled
 #        Enables the cataclysm guild leveling system. 
-#        It's currently far from being complete. 
-#        Use on your own risk!
-#        Default: 0 - disabled
+#        Default: 1 - enabled
 
-GuildAdvancement.Enabled = 0
+GuildAdvancement.Enabled = 1
 
 #        
 #    GuildAdvancement.MaxLevel
@@ -1353,7 +1297,7 @@ GuildAdvancement.MaxLevel = 25
 
 #        
 #    GuildAdvancement.ResetHour
-#        Reset Hourly XP Cap at specified hour of the day (0-23)
+#        Reset Daily XP Cap at specified hour of the day (0-23)
 #        Default: 3
 
 GuildAdvancement.ResetHour = 3
@@ -1450,10 +1394,10 @@ BeepAtStart = 1
 #    Motd
 #        Description: Message of the Day, displayed at login.
 #                     Use '@' for a newline and be sure to escape special characters.
-#        Example:     "Welcome to John\'s Server@This server runs on Skyfire Core."
-#        Default:     "Welcome to a Skyfire Core server."
+#        Example:     "Welcome to John\'s Server@This server runs on ArkCORE."
+#        Default:     "Welcome to a ArkCORE server."
 
-Motd = "Welcome to a Skyfire Core server.@If your seeing this message@it's because the developer hasnt read configs fully"
+Motd = "Welcome to a ArkCORE server.@If your seeing this message@it's because the developer hasnt read configs fully"
 
 #
 #    Server.LoginInfo
@@ -1461,7 +1405,7 @@ Motd = "Welcome to a Skyfire Core server.@If your seeing this message@it's becau
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-Server.LoginInfo = 0
+Server.LoginInfo = 1
 
 #
 #    Command.LookupMaxResults
@@ -1481,10 +1425,10 @@ AllowTickets = 1
 #
 #     DungeonFinder.Enable
 #        Description: Dungeon and raid finder system.
-#                     0 - (Disabled)
-#        Default:     1 - (Enabled, Experimental as of still being in development)
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled, Experimental as of still being in development)
 
-DungeonFinder.Enable = 1
+DungeonFinder.Enable = 0
 
 #
 #   DB2.EnforceItemAttributes
@@ -1501,82 +1445,6 @@ DB2.EnforceItemAttributes = 1
 #        Default:     5
 
 AccountInstancesPerHour = 5
-
-#
-###################################################################################################
-
-###################################################################################################
-# WARDEN SETTINGS
-#
-#    Warden.Enabled
-#        Description: Enable Warden anticheat system.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-Warden.Enabled = 0
-
-#
-#    Warden.NumMemChecks
-#        Description: Number of Warden memory checks that are sent to the client each cycle.
-#        Default:     3 - (Enabled)
-#                     0 - (Disabled)
-
-Warden.NumMemChecks = 3
-
-#
-#    Warden.NumOtherChecks
-#        Description: Number of Warden checks other than memory checks that are added to request
-#                     each checking cycle.
-#        Default:     7 - (Enabled)
-#                     0 - (Disabled)
-
-Warden.NumOtherChecks = 7
-
-#
-#    Warden.LogFile
-#        Description: Client check fails will be logged here.
-#        Default:     ""           - (Disabled)
-#                     "Warden.log" - (Enabled)
-#
-
-Warden.LogFile = ""
-
-#
-#    Warden.ClientResponseDelay
-#        Description: Time (in seconds) before client is getting disconnecting for not responding.
-#        Default:     600 - (10 Minutes)
-#                     0 - (Disabled, client won't be kicked)
-
-Warden.ClientResponseDelay = 600
-
-#
-#    Warden.ClientCheckHoldOff
-#        Description: Time (in seconds) to wait before sending the next check request to the client.
-#                     A low number increases traffic and load on client and server side.
-#        Default:     30 - (30 Seconds)
-#                     0  - (Send check as soon as possible)
-
-Warden.ClientCheckHoldOff = 30
-
-#
-#    Warden.ClientCheckFailAction
-#        Description: Default action being taken if a client check failed. Actions can be
-#                     overwritten for each single check via warden_action table in characters 
-#                     database.
-#        Default:     0 - (Disabled, Logging only)
-#                     1 - (Kick)
-#                     2 - (Ban)
-
-Warden.ClientCheckFailAction = 0
-
-#
-#    Warden.BanDuration
-#        Description: Time (in seconds) an account will be banned if ClientCheckFailAction is set
-#                     to ban.
-#        Default:     86400 - (24 hours)
-#                     0     - (Permanent ban)
-
-Warden.BanDuration = 86400
 
 #
 ###################################################################################################
@@ -2106,7 +1974,7 @@ Visibility.GroupMode = 1
 #                     180 - (Visibility.Distance.BGArenas)
 
 Visibility.Distance.Continents = 90
-Visibility.Distance.Instances = 120
+Visibility.Distance.Instances = 500
 Visibility.Distance.BGArenas = 180
 
 #
@@ -2218,6 +2086,16 @@ Rate.XP.Kill    = 1
 Rate.XP.Quest   = 1
 Rate.XP.Explore = 1
 
+#    Rate.XP.Kill.Premium
+#    Rate.XP.Quest.Premium
+#    Rate.XP.Explore.Premium
+#        XP rates Premium modifier
+#        Default: 1
+
+Rate.XP.Kill.Premium    = 1
+Rate.XP.Quest.Premium   = 1
+Rate.XP.Explore.Premium = 1
+
 #
 #    Rate.RepairCost
 #        Description: Repair cost rate.
@@ -2249,7 +2127,7 @@ Rate.Damage.Fall = 1
 #    Rate.Auction.Time
 #    Rate.Auction.Deposit
 #    Rate.Auction.Cut
-#        Description: Auction rates (auction time, deposit get at auction start, 
+#        Description: Auction rates (auction time, deposit get at auction start,
 #                     auction cut from price at auction end)
 #        Default:     1 - (Rate.Auction.Time)
 #                     1 - (Rate.Auction.Deposit)
@@ -2423,8 +2301,8 @@ DurabilityLossChance.Block = 0.05
 #
 #    Death.SicknessLevel
 #        Description: Starting level for resurrection sickness.
-#        Example:     11 - (Level 1-10 characters will not be affected, 
-#                           Level 11-19 characters will be affected for 1 minute, 
+#        Example:     11 - (Level 1-10 characters will not be affected,
+#                           Level 11-19 characters will be affected for 1 minute,
 #                           Level 20-MaxPlayerLevel characters will be affected for 10 minutes)
 #         Default:    11               - (Enabled, See Example)
 #                     MaxPlayerLevel+1 - (Disabled)
@@ -2445,7 +2323,7 @@ Death.CorpseReclaimDelay.PvE = 0
 #
 #    Death.Bones.World
 #    Death.Bones.BattlegroundOrArena
-#        Description: Create bones instead of corpses at resurrection in normal zones, instances, 
+#        Description: Create bones instead of corpses at resurrection in normal zones, instances,
 #                     battleground or arenas.
 #        Default:     1 - (Enabled, Death.Bones.World)
 #                     1 - (Enabled, Death.Bones.BattlegroundOrArena)
@@ -2495,6 +2373,26 @@ AutoBroadcast.Timer = 60000
 ###################################################################################################
 
 ###################################################################################################
+# LOOKING FOR GROUP CONFIG
+#
+# LookingForGroup.CastDeserter
+# Description: Cast Deserter spell at players who Leave Dungeon when in Looking For Group.
+# Default: 1 - (Enabled)
+#          0 - (Disabled)
+
+LookingForGroup.CastDeserter = 1
+
+# LookingForGroup.CastDeserter
+# Description: Cast Cooldown spell at players who join Dungeon when in Looking For Group.
+# Default: 1 - (Enabled)
+#         0 - (Disabled)
+
+LookingForGroup.CastCooldown = 1
+
+#
+###################################################################################################
+
+###################################################################################################
 # BATTLEGROUND CONFIG
 #
 #    Battleground.CastDeserter
@@ -2523,7 +2421,7 @@ Battleground.QueueAnnouncer.PlayerOnly = 0
 #
 #    Battleground.InvitationType
 #        Description: Set Battleground invitation type.
-#        Default:     0 - (Normal, Invite as much players to battlegrounds as queued, 
+#        Default:     0 - (Normal, Invite as much players to battlegrounds as queued,
 #                          Don't bother with balance)
 #                     1 - (Experimental, Don't allow to invite much more players
 #                          of one faction)
@@ -2554,7 +2452,7 @@ BattleGround.PremadeGroupWaitForMatch = 1800000
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
-Battleground.GiveXPForKills = 0
+Battleground.GiveXPForKills = 1
 
 #
 #    Battleground.Random.ResetHour
@@ -2712,9 +2610,9 @@ Arena.QueueAnnouncer.Enable = 0
 #
 #    Arena.ArenaSeason.ID
 #        Description: Current area season id shown in clients.
-#        Default:     9
+#        Default:     8
 
-Arena.ArenaSeason.ID = 9
+Arena.ArenaSeason.ID = 8
 
 #
 #    Arena.ArenaSeason.InProgress
@@ -2729,7 +2627,7 @@ Arena.ArenaSeason.InProgress = 1
 #        Description: Start rating for new arena teams.
 #        Default:     1500
 
-Arena.ArenaStartRating = 1500
+Arena.ArenaStartRating = 0
 
 #
 #    Arena.ArenaStartPersonalRating
@@ -2745,15 +2643,6 @@ Arena.ArenaStartPersonalRating = 0
 
 Arena.ArenaStartMatchmakerRating = 1500
 
-#
-#    Rate.ConquestPointsWeekLimit
-#        Description: Rate for Conquest Point Week Limit
-#                     Rate multiplier. (range 0-100)
-#        Default:     1
-
-Rate.ConquestPointsWeekLimit = 1
-
-#
 #
 ###################################################################################################
 
@@ -2896,6 +2785,91 @@ IgnoringMapsVersion = 0
 ###################################################################################################
 
 ###################################################################################################
+# CURRENCY SETTINGS
+#
+#
+#    StartHonorPoints
+#        Description: Amount of honor points that characters have after creation.
+#        Default:     0
+
+StartHonorPoints = 0
+
+#
+#    MaxHonorPoints
+#        Description: Maximum honor points a character can have.
+#        Default:     75000
+
+MaxHonorPoints = 75000
+
+#
+#    StartConquestPoints
+#        Description: Amount of conquest that characters has after creation.
+#        Default: 0
+
+StartConquestPoints = 0
+
+#
+#    ConquestPointsReward.Arena
+#        Description: Amount of conquest points that characters can get for each
+#        arena. The points of last 2 arenas (after first 8) will be 
+#        ConquestPointsReward.Arena/2.
+#        Default: 180
+
+ConquestPointsReward.Arena = 180
+
+#
+#    MaxConquestPoints.PerWeek
+#        Description: Maximum conquest points that player can have per week.
+#        Default:  1250
+
+MaxConquestPoints.PerWeek = 1250
+
+#
+#    MaxConquestPoints
+#        Description: Maximum conquest points that player can have, multiplied by 100.
+#        Default: 4000
+
+MaxConquestPoints = 4000
+
+#
+#    StartValorPoints
+#        Description: Amount of Valor that characters has after creation.
+#        Default: 0
+
+StartValorPoints = 0
+
+#
+#    MaxValorPoints.PerWeek
+#        Description: Maximum Valor points that player can have per week.
+#        Default:  1250
+
+MaxValorPoints.PerWeek = 1250
+
+#
+#    MaxValorPoints
+#        Description: Maximum Valor points that player can have, multiplied by 100.
+#        Default: 4000
+
+MaxValorPoints = 4000
+
+#
+#    StartJusticePoints
+#        Description: Amount of justice points that characters has after creation.
+#        Default: 0
+
+StartJusticePoints = 0
+
+#
+#    MaxJusticePoints
+#        Description: Maximum justice points that player can have, multiplied by 100.
+#        Default: 4000
+
+MaxJusticePoints = 4000
+
+#
+###################################################################################################
+
+###################################################################################################
 # CUSTOM SERVER OPTIONS
 #
 #    PlayerStart.AllReputation
@@ -2935,7 +2909,7 @@ HonorPointsAfterDuel = 0
 
 #
 #    AlwaysMaxWeaponSkill
-#        Description: Players will automatically gain max weapon/defense skill when logging in, 
+#        Description: Players will automatically gain max weapon/defense skill when logging in,
 #                     or leveling.
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
@@ -3053,10 +3027,11 @@ LevelReq.Auction = 1
 
 LevelReq.Mail = 1
 
+#
 #   PlayersAccessToGMIsland
-#       Prevent access for players to gm island
-#	Default: 0 - Disable
-#		 1 - Enable
+#   Description: Prevent access for players to gm island
+#   Default: 0 - Disable
+#       1 - Enable
 
 PreventPlayersAccessToGMIsland = 0
 
@@ -3076,4 +3051,611 @@ PlayerDump.DisallowPaths = 1
 PlayerDump.DisallowOverwrite = 1
 
 #
+#   DuelResetCooldown
+#   Description: Reseting cooldown and restore health when duel finished in the follow zones:
+#   Elwyn Forest, Durotar, Tirisfal, Tendrasil, Dun Morogh, Gurubashi Arena, Exodar, Mulgore
+#   Default: 1
+#
+
+DuelResetCooldown = 1
+
+#
 ###################################################################################################
+
+###################################################################################################
+# WINTERGRASP CUSTOM OPTIONS
+#
+#   OutdoorPvP.Wintergrasp.Enabled
+#       Description: Determines whether the Wintergrasp battle is enabled or not.
+#       Default: 1 = Enable
+#                0 = Disable
+
+OutdoorPvP.Wintergrasp.Enabled = 1
+
+#
+#   OutdoorPvP.Wintergrasp.SaveState.Period
+#      Description: Interval (in milliseconds) of Save Wintergrasp State Data to restore it after crash/shutdown/restart
+#      Default (60000 milliseconds)
+#      Warning:  Do not set it less 1 second!
+
+OutdoorPvP.Wintergrasp.SaveState.Period = 60000
+
+#   OutdoorPvP.Wintergrasp.StartTime
+#       Description: The start time of the first battle after server starts (in minutes)
+#       Default: 30
+
+OutdoorPvP.Wintergrasp.StartTime = 360
+
+#   OutdoorPvP.Wintergrasp.BattleTime
+#       Description: Time limit of a battle (in minutes)
+#       Default: 30
+
+OutdoorPvP.Wintergrasp.BattleTime = 30
+
+#   OutdoorPvP.Wintergrasp.Interval
+#       Description: Interval between battles (in minutes)
+#       Default: 150
+
+OutdoorPvP.Wintergrasp.Interval = 150
+
+#   OutdoorPvP.Wintergrasp.CustomHonorRewards
+#       Description: Defines whether custom honor rewards should be given to player
+#        for partaking in the Wintergrasp Battle.
+#        Default: 0 = Disable
+#                 1 = Enable
+
+OutdoorPvP.Wintergrasp.CustomHonorRewards = 0
+
+#   OutdoorPvP.Wintergrasp.CustomHonorBattleWin
+#       Description: Defines the amount of honor points that should be given to the
+#        team winning the Wintergrasp Battle.
+#       Requires OutdoorPvP.Wintergrasp.CustomHonorRewards = 1.
+#       Default: 150
+
+OutdoorPvP.Wintergrasp.CustomHonorBattleWin = 150
+
+#   OutdoorPvP.Wintergrasp.CustomHonorBattleLose
+#       Description: Defines the amount of honor points that should be given to the
+#        team losing the Wintergrasp Battle.
+#       Requires OutdoorPvP.Wintergrasp.CustomHonorRewards = 1.
+#       Default: 99
+
+OutdoorPvP.Wintergrasp.CustomHonorBattleLose = 99
+
+#   OutdoorPvP.Wintergrasp.CustomHonorDamageTower
+#       Description: Defines the amount of honor points that should be given to the
+#        team for damaging a tower.
+#       Requires OutdoorPvP.Wintergrasp.CustomHonorRewards = 1.
+#       Default: 25
+
+OutdoorPvP.Wintergrasp.CustomHonorDamageTower = 25
+
+#   OutdoorPvP.Wintergrasp.CustomHonorDestroyedTower
+#       Description: Defines the amount of honor points that should be given to the
+#        team for destroying a tower.
+#       Requires OutdoorPvP.Wintergrasp.CustomHonorRewards = 1.
+#       Default: 50
+
+OutdoorPvP.Wintergrasp.CustomHonorDestroyedTower = 50
+
+#   OutdoorPvP.Wintergrasp.CustomHonorDamagedBuilding
+#       Description: Defines the amount of honor points that should be given to the
+#        team for damaged buildings after the battle.
+#       Requires OutdoorPvP.Wintergrasp.CustomHonorRewards = 1.
+#       Default: 0
+
+OutdoorPvP.Wintergrasp.CustomHonorDamagedBuilding = 0
+
+#   OutdoorPvP.Wintergrasp.CustomHonorIntactBuilding
+#      Description: Defines the amount of honor points that should be given to the
+#        team for intact buildings after the battle.
+#       Requires OutdoorPvP.Wintergrasp.CustomHonorRewards = 1.
+#       Default: 0
+
+OutdoorPvP.Wintergrasp.CustomHonorIntactBuilding = 0
+
+#   OutdoorPvP.Wintergrasp.Antifarm.Enable
+#      Description: Enable or Disable antifarm system
+#       Prevents start WG battle event if there are too low players (see options bellow)
+#       Default: 0 - Disabled
+#                1 - Enabled
+OutdoorPvP.Wintergrasp.Antifarm.Enable = 0
+
+#   OutdoorPvP.Wintergrasp.Antifarm.Atk
+#      Description: Min count of attackers for antifarm
+#              (Default: 5)
+
+OutdoorPvP.Wintergrasp.Antifarm.Atk = 15
+
+#   OutdoorPvP.Wintergrasp.Antifarm.Def
+#      Description: Min count of defenders for antifarm
+#              (Default: 5)
+
+OutdoorPvP.Wintergrasp.Antifarm.Def = 15
+
+#
+###################################################################################################
+
+###################################################################################################
+# AUCTIONHOUSE BOT CUSTOM OPTIONS
+
+###################################################################################################
+
+#       AuctionHouseBot.DEBUG 
+#           Description: Desenables (1) or disables (0) Debug output
+#           Default: 0
+
+AuctionHouseBot.DEBUG = 0
+
+#       AuctionHouseBot.EnableSeller 
+#           Description: enables (1) or disables (0) the Seller
+#           Default: 0
+
+AuctionHouseBot.EnableSeller = 0
+
+#       AuctionHouseBot.EnableBuyer 
+#           Description: enables (1) or disables (0) the Buyer
+#           Default: 0
+
+AuctionHouseBot.EnableBuyer = 0
+
+#       AuctionHouseBot.UseBuyPriceForSeller 
+#           Description: Use SellPrice (0) or BuyPrice (1) for #determining prices
+#           Default: 0
+
+AuctionHouseBot.UseBuyPriceForSeller = 0
+
+#       AuctionHouseBot.UseBuyPriceForBuyer 
+#           Description: Use SellPrice (0) or BuyPrice (1) for #determining prices
+#           Default: 0
+
+AuctionHouseBot.UseBuyPriceForBuyer = 0
+
+#       AuctionHouseBot.Account 
+#           Description: is the account number (in realmd->account table) of 
+#               the player you want to run as the auction bot. Note: a value of 0 will #disable the bot.
+#           Default: 0
+
+AuctionHouseBot.Account = 0
+
+#       AuctionHouseBot.GUID
+#           Description: is the GUID (in characters->characters table) of the 
+#               player you want to run as the auction bot. Note: a value of 0 will disable #the bot.
+#           Default: 0
+
+AuctionHouseBot.GUID = 0
+
+#       AuctionHouseBot.ItemsPerCycle
+#           Description: determines how many items are added each time #AHBot is run (once per minute, by default)
+#           Default: 200
+
+AuctionHouseBot.ItemsPerCycle = 200
+
+#       AuctionHouseBot.VendorItems 
+#           Description: is a boolean value (0 or 1) that indicates #whether to include Vendor only items
+#           Default: 0
+
+AuctionHouseBot.VendorItems = 0
+
+#       AuctionHouseBot.VendorTradeGoods 
+#           Description: is a boolean value (0 or 1) that indicates #whether to include Vendor only Trade Goods
+#           Default: 0
+
+AuctionHouseBot.VendorTradeGoods = 0
+
+#       AuctionHouseBot.LootItems  
+#           Description: is a boolean value (0 or 1) that indicates #whether to include Loot/Fish/Skin/etc. only items
+#           Default: 1
+
+AuctionHouseBot.LootItems = 1
+
+#       AuctionHouseBot.LootTradeGoods  
+#           Description: is a boolean value (0 or 1) that indicates #whether to include Loot/Fish/Skin/etc. only Trade Goods
+#           Default: 1
+
+AuctionHouseBot.LootTradeGoods = 1
+
+#       AuctionHouseBot.OtherItems  
+#           Description: is a boolean value (0 or 1) that indicates #whether to include Other items not covered by the first 2
+#           Default: 0
+
+AuctionHouseBot.OtherItems = 0
+
+#       AuctionHouseBot.OtherTradeGoods  
+#           Description: is a boolean value (0 or 1) that indicates whether to include Other Trade Goods not covered by the first 2
+#           Default: 0
+
+AuctionHouseBot.OtherTradeGoods = 0
+
+#       AuctionHouseBot.No_Bind 
+#           Description: is a boolean value (0 or 1) that indicates whether #to include items with a bonding of 0
+#           Default: 1
+
+AuctionHouseBot.No_Bind = 1
+
+#       AuctionHouseBot.Bind_When_Picked_Up 
+#           Description: is a boolean value (0 or 1) that #indicates whether to include items with a bonding of 1
+#           Default: 0
+
+AuctionHouseBot.Bind_When_Picked_Up = 0
+
+#       AuctionHouseBot.Bind_When_Equipped 
+#           Description: is a boolean value (0 or 1) that #indicates whether to include items with a bonding of 2
+#           Default: 1
+
+AuctionHouseBot.Bind_When_Equipped = 1
+
+#       AuctionHouseBot.Bind_When_Use
+#           Description: is a boolean value (0 or 1) that indicates #whether to include items with a bonding of 3
+#           Default: 1
+
+AuctionHouseBot.Bind_When_Use = 1
+
+#       AuctionHouseBot.Bind_Quest_Item
+#           Description: is a boolean value (0 or 1) that indicates #whether to include items with a bonding of 4
+#           Default: 1
+
+AuctionHouseBot.Bind_Quest_Item = 0
+
+#       AuctionHouseBot.DisableBeta_PTR_Unused 
+#           Description: is a boolean value (0 or 1) that will #Disable certain items that are usually unavailable to Players
+#           Default: 0
+
+AuctionHouseBot.DisableBeta_PTR_Unused = 0
+
+#       AuctionHouseBot.DisablePermEnchant 
+#           Description: is a boolean value (0 or 1) that will #Disable Items with a Permanent Enchantment
+#           Default: 0
+
+AuctionHouseBot.DisablePermEnchant = 0
+
+#       AuctionHouseBot.DisableConjured 
+#           Description: is a boolean value (0 or 1) that will #Disable Conjured Items
+#           Default: 0
+
+AuctionHouseBot.DisableConjured = 0
+
+#       AuctionHouseBot.DisableGems 
+#           Description: is a boolean value (0 or 1) that will Disable #Gems
+#           Default: 0
+
+AuctionHouseBot.DisableGems = 0
+
+#       AuctionHouseBot.DisableMoney 
+#           Description: is a boolean value (0 or 1) that will Disable #Items that are used as money
+#           Default: 0
+
+AuctionHouseBot.DisableMoney = 0
+
+#       AuctionHouseBot.DisableMoneyLoot 
+#           Description: is a boolean value (0 or 1) that will #Disable Items that have Money as a loot
+#           Default: 0
+
+AuctionHouseBot.DisableMoneyLoot = 0
+
+#       AuctionHouseBot.DisableLootable
+#           Description: is a boolean value (0 or 1) that will #Disable Items that have other items as loot
+#           Default: 0
+
+AuctionHouseBot.DisableLootable = 0
+
+#       AuctionHouseBot.DisableKeys 
+#           Description: is a boolean value (0 or 1) that will Disable #Items that are keys
+#           Default: 0
+
+AuctionHouseBot.DisableKeys = 0
+
+#       AuctionHouseBot.DisableDuration
+#           Description: is a boolean value (0 or 1) that will #Disable Items with a duration
+#           Default: 0
+           
+AuctionHouseBot.DisableDuration = 0
+
+#       AuctionHouseBot.DisableBOP_Or_Quest_NoReqLevel 
+#           Description: is a boolean value (0 or 1) #that will Disable items that are BOP or 
+#                        Quest Item with a Required level that #is less than the Item Level
+#           Default: 0
+                       
+AuctionHouseBot.DisableBOP_Or_Quest_NoReqLevel = 0
+
+# These Filters are boolean (0 or 1) and will disable items that are
+# specifically meant for the Class named.
+# (UnusedClass is Class 10, which was skipped for some reason)
+AuctionHouseBot.DisableWarriorItems = 0
+AuctionHouseBot.DisablePaladinItems = 0
+AuctionHouseBot.DisableHunterItems = 0
+AuctionHouseBot.DisableRogueItems = 0
+AuctionHouseBot.DisablePriestItems = 0
+AuctionHouseBot.DisableDKItems = 0
+AuctionHouseBot.DisableShamanItems = 0
+AuctionHouseBot.DisableMageItems = 0
+AuctionHouseBot.DisableWarlockItems = 0
+AuctionHouseBot.DisableUnusedClassItems = 0
+AuctionHouseBot.DisableDruidItems = 0
+
+# These are the Filters For filtering certain items/trade goods from the AH
+AuctionHouseBot.DisableItemsBelowLevel = 0
+AuctionHouseBot.DisableItemsAboveLevel = 0
+AuctionHouseBot.DisableTGsBelowLevel = 0
+AuctionHouseBot.DisableTGsAboveLevel = 0
+AuctionHouseBot.DisableItemsBelowGUID = 0
+AuctionHouseBot.DisableItemsAboveGUID = 0
+AuctionHouseBot.DisableTGsBelowGUID = 0
+AuctionHouseBot.DisableTGsAboveGUID = 0
+AuctionHouseBot.DisableItemsBelowReqLevel = 0
+AuctionHouseBot.DisableItemsAboveReqLevel = 0
+AuctionHouseBot.DisableTGsBelowReqLevel = 0
+AuctionHouseBot.DisableTGsAboveReqLevel = 0
+AuctionHouseBot.DisableItemsBelowReqSkillRank = 0
+AuctionHouseBot.DisableItemsAboveReqSkillRank = 0
+AuctionHouseBot.DisableTGsBelowReqSkillRank = 0
+AuctionHouseBot.DisableTGsAboveReqSkillRank = 0
+
+#
+###################################################################################################
+
+###################################################################################################
+# IRC CLIENT OPTIONS
+#
+# irc.active
+#     Enable TriniChat Addon
+#     Default: 1 - Enable
+#              0 - Disable
+#
+
+
+irc.active = 0
+
+# irc.icc
+#     IRC connect code
+#     Default: 001 - Welcome To Network msg
+#              375 - Beginning Of MOTD
+#              376 - End Of MOTD
+
+irc.icc = 001
+
+# irc.host
+#     IRC server to have TriniChat connect to
+#
+
+irc.host = "irc.arkania.net"
+
+# irc.port
+#     IRC server port to use
+
+irc.port = "6667"
+
+# irc.user
+#     The username to have TriniChat use to connect to the IRC server
+# irc.nick
+#     IRC nickname to be used by the bot
+# irc.pass
+#     The password to be used to identify to NickServ (IRC NickName Enforcement Services)
+
+irc.user = "ArkChat"
+irc.nick = "ArkChat"
+irc.pass = ""
+
+# irc.auth
+#     IRC Authentication Method
+#     Default: 0 - Disable
+#              1 - NickServ - Normal Method - PRIVMSG NickServ :IDENTIFY Password
+#              2 - NickServ - Alternate Method To Identify To A Different Nick - PRIVMSG NickServ :IDENTIFY irc.auth.nick Password
+#              3 - QuakeNet - Normal Method - PRIVMSG Q@CServe.quakenet.org :AUTH irc.nick Password
+#              4 - QuakeNet - Alternate Method To Identify To A Different Nick - PRIVMSG Q@CServe.quakenet.org :AUTH irc.auth.nick Password
+# irc.auth.nick
+#     IRC Nickname to use if Auth method 2 or 4 is used
+#
+
+irc.auth = 1
+irc.auth.nick = "ArkChat"
+
+# irc.ldef
+#     Leave a defined IRC channel on server connect
+#     Default: 0 - Disable
+#              1 - Enable
+# irc.defchan
+#     IRC channel to leave on server connect if irc.ldef is on
+
+irc.ldef = 1
+irc.defchan = "lobby"
+
+# irc.wct
+#     Time to wait before (re)attemptimg connection to IRC server
+#     Default: 30000 - (30 Seconds)
+# irc.maxattempt
+#     Maximum attempts to try IRC server
+#     Default: 20
+
+irc.wct = 30000
+irc.maxattempt = 255
+
+# irc.auto.announce
+#     Time to wait in Minutes to announce random messages from database.
+#     Default: 30 - (30 Minutes)
+
+irc.auto.announce = 30
+
+# irc.autojoin_kick
+#     Autojoin IRC channel if kicked
+#     Default: 1 - Enable
+#              0 - Disable
+
+irc.autojoin_kick = 1
+
+# irc.command_prefix
+#     IRC command prefix
+#     Example: (.)online all
+
+irc.command_prefix = "-"
+
+# irc.joinmsg
+# irc.rstmsg
+# irc.kickmsg
+#     TriniChat bot join/restart/kick messages
+
+irc.joinmsg = "ArkCORE With ArkChat $Ver Is Up And Running! Command Trigger Is: $Trigger"
+irc.rstmsg  = "Realm Is Restarting, I Will Be Right Back."
+irc.kickmsg = "Do Not Kick Me Again, Severe Actions Will Be Taken!"
+
+# irc.chan_#
+# wow.chan_#
+#     IRC and WOW channels to link. Leave # out of IRC channel. Both channels _ARE_ case sensitive
+#     NOTE: you can have more than 1 IRC channel linked to wow channels, as in example:
+#     Example: irc.chan_1 = "Trinity"
+#              irc.chan_2 = "trinity2"
+#              wow.chan_1 = "world"
+#              wow.chan_2 = "LookingForGroup"
+# irc.pass_#
+#     Passwords for said IRC channels (IRC server side)
+#    Example:
+#        irc.pass_1 = "password"     password for irc channel #1
+#        irc.pass_2 = "password2"     password for irc channel #2
+
+irc.chan_1 = "ARKCHAT"
+irc.chan_2 = ""
+irc.chan_3 = ""
+irc.pass_1 = ""
+irc.pass_2 = ""
+irc.pass_3 = ""
+wow.chan_1 = "world"
+wow.chan_2 = ""
+wow.chan_3 = ""
+
+# irc.StatusChannel
+#     Channel Number To Display Status Messages In (AuctionHouse, Levels, Deaths, Etc)
+#     Default: 1 - Channel ID 1
+# irc.AnnounceChannel
+#     Channel Number To Display Announcements In (Announces, Notifies, Event)
+#     Default: 1 - Channel ID 1
+
+irc.StatusChannel = 1
+irc.AnnounceChannel = 1
+
+# irc.op_gm_login
+#     Op The GM In All Channels The Bot Is On When They Log In To TriniChat
+#     Default: 0 - Disable
+#              1 - Enable
+# irc.op_gm_level
+#     The Minimum GM Level Required To Have The Bot Op The User
+#     Default: 5 - GM Level 5
+
+irc.op_gm_login = 5
+irc.op_gm_level = 5
+
+# irc.ajoin (Experimental/Under Development)
+#     Force players to autojoin a WOW in game channel
+#     Atleast one player must be in the channel on server start, and atleast one person online for invite to work
+#     Default: 0 - Disable
+#              1 - Enable
+# irc.ajchan
+#     Channel to join if above is Enabled.
+
+irc.ajoin = 1
+irc.ajchan = "world"
+
+# irc.online.result
+#     Maximum number of results per line for the online command
+
+irc.online.result = 30
+
+# chat.*** (Defineable Strings) (maybe more in future)
+#     wow_* - String is displayed in IRC channel
+#     irc_* - String is displayed in WOW channel
+#     Options: $Name, $Level, $Msg, $GM (not all options work in every string)
+#
+#     DO NO EDIT UNLESS KNOW IRC CODES
+
+chat.wow_irc = "<WoW>[$Name($Level)] $Msg"
+chat.irc_wow = "<IRC>[$Name]: $Msg"
+chat.join_wow = "12>>04 $GM$Name Joined The $Channel Channel!"
+chat.join_irc = "[$Name]: Has Joined IRC!"
+chat.leave_wow = "12<<04 $GM$Name Left The $Channel Channel!"
+chat.leave_irc = "[$Name]: Has Left IRC!"
+chat.change_nick = "<> $Name Is Now Known As $NewName!"
+
+# Botmask
+#     This defines what the bot announces, if its 0 everything is disabled
+#     simply add the values of the elements you want to create this mask.
+#     Example: WoW join/leaves are 1 and IRC join/leaves are 2, if you want both of these active then the BotMask is 3.
+#       (1)Display WoW Chan Join/Leaves In IRC
+#       (2)Display IRC Chan Join/Leaves/NickChanges In WoW
+#       (4)Display Unknown Command Message When Trigger Is Used And No Command Exists
+#       (8)Announce Security Level > 0 As GM At Login
+#       (16)Announce GM In GM ON State AS GM At Login
+#       (32)Return Errors To Notice. (If disabled then default is Private Message)
+#       (64)Display WoW Status Messages (Levels/Deaths)
+#       (128)Display Nick Changes From IRC In WOW
+#       (256)Display WoW Announces/Notifies In IRC
+#       (512)Do Not Let Players Use Commands On Higher GM Level Players
+#       (1024)Enable AuctionHouse Announcements !!DISSABLED!!
+
+Botmask = 1023
+
+# irc.gmlog
+#     Minimum GM level to not show login/pass info in IRC logs
+# irc.logfile.prefix
+#     The prefix of the IRC logfile. Directories can be added here.
+#     Example: "IRC/IRC_" outputs IRC_YYYY-MM-DD.log to the IRC subdirectory in your logs dir
+# irc.logchannel
+#      Specefies the channel where logged output gets broadcasted.
+#      Default: "" (none)
+# irc.logchannelpw
+#     The password for the log channel.
+# irc.logmask
+#      Bitmask, see Botmask for explanation. Determines what gets logged to the logchannel.
+#     (0) Do not broadcast into logchannel.
+#      (1) Broadcast IRC Commands into logchannel.
+#      (2) Broadcast Ingame GM Commands into logchannel.
+#     (3) Broadcast both IRC Commands and GM Commands into logchannel.
+
+irc.gmlog = 1
+irc.logfile.prefix = "IRC_"
+irc.logchannel = "testlog"
+irc.logchannelpw = ""
+irc.logmask = 3
+
+# irc.fun.games (Experimental/Under Development)
+#     Enable ArkChat Games
+#     Default: 0 - Disable
+#              1 - Enable
+
+irc.fun.games = 0
+
+# irc.gm#
+#     GM tag to append to (GM onjoin / online command) IRC color codes are acceptable
+
+irc.gm1 = "[Moderator]"
+irc.gm2 = "[Game Master]"
+irc.gm3 = "[Game Master]"
+irc.gm4 = "[DevTeam]"
+irc.gm5 = "[DevTeam]"
+
+#
+################################################################################
+
+###############################################################################
+# ANTICHEAT CONFIGURATION
+#
+#     Anticheat.Enable
+#        Description: Enables or disables the Anticheat System functionality
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Anticheat.Enable = 0
+
+#     Anticheat.ReportsForIngameWarnings
+#        Description: How many reports the player must have to notify to GameMasters ingame when he generates a new report.
+#        Increase Default is you have a slow ine speed to Prevent False / Positive
+#        Default:     15
+
+Anticheat.ReportsForIngameWarnings = 15
+
+#    AntiCheatWarnChannel
+#       IRC Channel to send possible hack user warnings too
+#       one need to set this if you enable ArkChat
+
+AntiCheatWarnChannel = "#GAMEMASTERS"
+
+#
+################################################################################

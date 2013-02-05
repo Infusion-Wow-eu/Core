@@ -169,7 +169,7 @@ qsort_t my_qsort(void *base_ptr, size_t count, size_t size, qsort_cmp cmp)
 	low_ptr += size;
 	high_ptr -= size;
       }
-      else 
+      else
       {
 	if (low_ptr == high_ptr)
 	{

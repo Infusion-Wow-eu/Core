@@ -474,7 +474,7 @@ static size_t thai2sortable(uchar *tstr, size_t len)
     if (isthai(c))
     {
       int *t_ctype0= t_ctype[c];
-		    
+
       if (isconsnt(c))
 	l2bias	-= 8;
       if (isldvowel(c) && tlen != 1 && isconsnt(p[1]))
@@ -483,7 +483,7 @@ static size_t thai2sortable(uchar *tstr, size_t len)
 	*p= p[1];
 	p[1]= c;
 	tlen--;
-	p++; 
+	p++;
 	continue;
       }
 
@@ -503,7 +503,7 @@ static size_t thai2sortable(uchar *tstr, size_t len)
     else
     {
       l2bias-= 8;
-      *p= to_lower_tis620[c]; 
+      *p= to_lower_tis620[c];
     }
   }
   return len;
@@ -523,7 +523,7 @@ static size_t thai2sortable(uchar *tstr, size_t len)
 
 static
 int my_strnncoll_tis620(CHARSET_INFO *cs __attribute__((unused)),
-                        const uchar *s1, size_t len1, 
+                        const uchar *s1, size_t len1,
                         const uchar *s2, size_t len2,
                         my_bool s2_is_prefix)
 {
@@ -552,7 +552,7 @@ int my_strnncoll_tis620(CHARSET_INFO *cs __attribute__((unused)),
 
 static
 int my_strnncollsp_tis620(CHARSET_INFO * cs __attribute__((unused)),
-			  const uchar *a0, size_t a_length, 
+			  const uchar *a0, size_t a_length,
 			  const uchar *b0, size_t b_length,
                           my_bool diff_if_only_endspace_difference)
 {
@@ -563,11 +563,11 @@ int my_strnncollsp_tis620(CHARSET_INFO * cs __attribute__((unused)),
 #ifndef VARCHAR_WITH_DIFF_ENDSPACE_ARE_DIFFERENT_FOR_UNIQUE
   diff_if_only_endspace_difference= 0;
 #endif
-  
+
   a= buf;
   if ((a_length + b_length +2) > (int) sizeof(buf))
     alloced= a= (uchar*) my_str_malloc(a_length+b_length+2);
-  
+
   b= a + a_length+1;
   memcpy((char*) a, (char*) a0, a_length);
   a[a_length]= 0;	/* if length(a0)> len1, need to put 'end of string' */
@@ -575,7 +575,7 @@ int my_strnncollsp_tis620(CHARSET_INFO * cs __attribute__((unused)),
   b[b_length]= 0;	/* put end of string */
   a_length= thai2sortable(a, a_length);
   b_length= thai2sortable(b, b_length);
-  
+
   end= a + (length= min(a_length, b_length));
   while (a < end)
   {
@@ -611,9 +611,9 @@ int my_strnncollsp_tis620(CHARSET_INFO * cs __attribute__((unused)),
       }
     }
   }
-  
+
 ret:
-  
+
   if (alloced)
     my_str_free(alloced);
   return res;
@@ -819,7 +819,7 @@ int my_mb_wc_tis620(CHARSET_INFO *cs  __attribute__((unused)),
 {
   if (str >= end)
     return MY_CS_TOOSMALL;
-  
+
   *wc=cs_to_uni[*str];
   return (!wc[0] && str[0]) ? -1 : 1;
 }
@@ -831,10 +831,10 @@ int my_wc_mb_tis620(CHARSET_INFO *cs  __attribute__((unused)),
 		  uchar *end __attribute__((unused)))
 {
   uchar *pl;
-  
+
   if (str >= end)
     return MY_CS_TOOSMALL;
-  
+
   pl= uni_to_cs[(wc>>8) & 0xFF];
   str[0]= pl ? pl[wc & 0xFF] : '\0';
   return (!str[0] && wc) ? MY_CS_ILUNI : 1;

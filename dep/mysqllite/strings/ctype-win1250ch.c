@@ -294,7 +294,7 @@ static uchar _sort_order_win1250ch1[] = {
 0xac, 0xae, 0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4,
 0xb5, 0xb6,
 	    /* R ord 82 0x52 */
-	    0xb7, 
+	    0xb7,
 		  /* S ord 83 0x53 */
 		  0xb9, 0xbc, 0xbd, 0xbe, 0xbf,
 0xc0, 0xc1, 0xc2,
@@ -354,7 +354,7 @@ static uchar _sort_order_win1250ch2[] = {
 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 0x01, 0x01,
 	    /* R ord 82 0x52 */
-	    0x01, 
+	    0x01,
 		  /* S ord 83 0x53 */
 		  0x01, 0x01, 0x01, 0x01, 0x01,
 0x01, 0x01, 0x01,
@@ -439,7 +439,7 @@ static struct wordvalue doubles[] = {
 
 #define IS_END(p, src, len)	(((char *)p - (char *)src) >= (len))
 
-static int my_strnncoll_win1250ch(CHARSET_INFO *cs __attribute__((unused)), 
+static int my_strnncoll_win1250ch(CHARSET_INFO *cs __attribute__((unused)),
 				  const uchar *s1, size_t len1,
                                   const uchar *s2, size_t len2,
                                   my_bool s2_is_prefix)
@@ -469,8 +469,8 @@ static int my_strnncoll_win1250ch(CHARSET_INFO *cs __attribute__((unused)),
 */
 
 static
-int my_strnncollsp_win1250ch(CHARSET_INFO * cs, 
-			     const uchar *s, size_t slen, 
+int my_strnncollsp_win1250ch(CHARSET_INFO * cs,
+			     const uchar *s, size_t slen,
 			     const uchar *t, size_t tlen,
                              my_bool diff_if_only_endspace_difference
                              __attribute__((unused)))
@@ -481,7 +481,7 @@ int my_strnncollsp_win1250ch(CHARSET_INFO * cs,
 }
 
 static size_t my_strnxfrm_win1250ch(CHARSET_INFO * cs  __attribute__((unused)),
-                                    uchar *dest, size_t len, 
+                                    uchar *dest, size_t len,
                                     const uchar *src, size_t srclen)
 {
   int value;

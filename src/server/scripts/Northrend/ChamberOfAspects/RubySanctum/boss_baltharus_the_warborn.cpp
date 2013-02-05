@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -72,271 +71,270 @@ class boss_baltharus_the_warborn : public CreatureScript
 public:
     boss_baltharus_the_warborn() : CreatureScript("boss_baltharus_the_warborn") { }
 
-    struct boss_baltharus_the_warbornAI : public BossAI
-    {
-        boss_baltharus_the_warbornAI(Creature* creature) : BossAI(creature, DATA_BALTHARUS_THE_WARBORN)
+        struct boss_baltharus_the_warbornAI : public BossAI
         {
-            _introDone = false;
-        }
+            boss_baltharus_the_warbornAI(Creature* creature) : BossAI(creature, DATA_BALTHARUS_THE_WARBORN)
+            {
+                _introDone = false;
+            }
 
         void Reset()
         {
-            _Reset();
-            events.SetPhase(PHASE_INTRO);
-            events.ScheduleEvent(EVENT_OOC_CHANNEL, 0, 0, PHASE_INTRO);
-            _cloneCount = RAID_MODE<uint8>(1, 2, 2, 2);
-            instance->SetData(DATA_BALTHARUS_SHARED_HEALTH, me->GetMaxHealth());
-        }
-
-        void DoAction(int32 const action)
-        {
-            switch (action)
-            {
-                case ACTION_INTRO_BALTHARUS:
-                    if (_introDone)
-                        return;
-                    _introDone = true;
-                    me->setActive(true);
-                    events.ScheduleEvent(EVENT_INTRO_TALK, 7000, 0, PHASE_INTRO);
-                    break;
-                case ACTION_CLONE:
-                {
-                    DoCast(me, SPELL_CLEAR_DEBUFFS);
-                    DoCast(me, SPELL_CLONE);
-                    DoCast(me, SPELL_REPELLING_WAVE);
-                    Talk(SAY_CLONE);
-                    --_cloneCount;
-                    break;
-                }
-                default:
-                    break;
+                _Reset();
+                events.SetPhase(PHASE_INTRO);
+                events.ScheduleEvent(EVENT_OOC_CHANNEL, 0, 0, PHASE_INTRO);
+                _cloneCount = RAID_MODE<uint8>(1, 2, 2, 2);
+                instance->SetData(DATA_BALTHARUS_SHARED_HEALTH, me->GetMaxHealth());
             }
-        }
 
-        void EnterCombat(Unit* /*who*/)
-        {
-            me->InterruptNonMeleeSpells(false);
-            _EnterCombat();
-            events.Reset();
-            events.SetPhase(PHASE_COMBAT);
-            events.ScheduleEvent(EVENT_CLEAVE, 11000, 0, PHASE_COMBAT);
-            events.ScheduleEvent(EVENT_ENERVATING_BRAND, 13000, 0, PHASE_COMBAT);
-            events.ScheduleEvent(EVENT_BLADE_TEMPEST, 15000, 0, PHASE_COMBAT);
-            Talk(SAY_AGGRO);
-        }
+            void DoAction(int32 const action)
+            {
+                switch (action)
+                {
+                    case ACTION_INTRO_BALTHARUS:
+                        if (_introDone)
+                return;
+                        _introDone = true;
+                        me->setActive(true);
+                        events.ScheduleEvent(EVENT_INTRO_TALK, 7000, 0, PHASE_INTRO);
+                   break;
+                    case ACTION_CLONE:
+                    {
+                        DoCast(me, SPELL_CLEAR_DEBUFFS);
+                        DoCast(me, SPELL_CLONE);
+                        DoCast(me, SPELL_REPELLING_WAVE);
+                        Talk(SAY_CLONE);
+                        --_cloneCount;
+                   break;
+            }
+                default:
+                     break;
+            }
+            }
 
-        void JustDied(Unit* /*killer*/)
-        {
-            _JustDied();
-            Talk(SAY_DEATH);
-            if (Creature* xerestrasza = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_XERESTRASZA)))
-                xerestrasza->AI()->DoAction(ACTION_BALTHARUS_DEATH);
+            void EnterCombat(Unit* /*who*/)
+            {
+                me->InterruptNonMeleeSpells(false);
+                _EnterCombat();
+                events.Reset();
+                events.SetPhase(PHASE_COMBAT);
+                events.ScheduleEvent(EVENT_CLEAVE, 11000, 0, PHASE_COMBAT);
+                events.ScheduleEvent(EVENT_ENERVATING_BRAND, 13000, 0, PHASE_COMBAT);
+                events.ScheduleEvent(EVENT_BLADE_TEMPEST, 15000, 0, PHASE_COMBAT);
+                Talk(SAY_AGGRO);
+            }
+
+            void JustDied(Unit* /*killer*/)
+            {
+                _JustDied();
+                Talk(SAY_DEATH);
+                if (Creature* xerestrasza = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_XERESTRASZA)))
+                    xerestrasza->AI()->DoAction(ACTION_BALTHARUS_DEATH);
         }
 
         void KilledUnit(Unit* victim)
         {
-            if (victim->GetTypeId() == TYPEID_PLAYER)
-                Talk(SAY_KILL);
-        }
-
-        void JustSummoned(Creature* summon)
-        {
-            summons.Summon(summon);
-            summon->SetHealth(me->GetHealth());
-            summon->CastSpell(summon, SPELL_SPAWN_EFFECT, true);
-        }
-
-        void DamageTaken(Unit* /*attacker*/, uint32& damage)
-        {
-            if (GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL)
-            {
-                if (me->HealthBelowPctDamaged(50, damage) && _cloneCount == 1)
-                    DoAction(ACTION_CLONE);
-            }
-            else
-            {
-                if (me->HealthBelowPctDamaged(66, damage) && _cloneCount == 2)
-                    DoAction(ACTION_CLONE);
-                else if (me->HealthBelowPctDamaged(33, damage) && _cloneCount == 1)
-                    DoAction(ACTION_CLONE);
+                if (victim->GetTypeId() == TYPEID_PLAYER)
+                    Talk(SAY_KILL);
             }
 
-            if (me->GetHealth() > damage)
-                instance->SetData(DATA_BALTHARUS_SHARED_HEALTH, me->GetHealth() - damage);
-        }
-
-        void UpdateAI(uint32 const diff)
-        {
-            if (!UpdateVictim() && !(events.GetPhaseMask() & PHASE_INTRO_MASK))
-                return;
-
-            if (!(events.GetPhaseMask() & PHASE_INTRO_MASK))
-                me->SetHealth(instance->GetData(DATA_BALTHARUS_SHARED_HEALTH));
-
-            events.Update(diff);
-
-            if (me->HasUnitState(UNIT_STATE_CASTING) && !(events.GetPhaseMask() & PHASE_INTRO_MASK))
-                return;
-
-            while (uint32 eventId = events.ExecuteEvent())
+            void JustSummoned(Creature* summon)
             {
-                switch (eventId)
+                summons.Summon(summon);
+                summon->SetHealth(me->GetHealth());
+                summon->CastSpell(summon, SPELL_SPAWN_EFFECT, true);
+            }
+
+            void DamageTaken(Unit* /*attacker*/, uint32& damage)
+            {
+                if (GetDifficulty() == RAID_DIFFICULTY_10MAN_NORMAL)
                 {
-                    case EVENT_INTRO_TALK:
-                        Talk(SAY_BALTHARUS_INTRO);
-                        break;
-                    case EVENT_OOC_CHANNEL:
-                        if (Creature* channelTarget = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_CRYSTAL_CHANNEL_TARGET)))
-                            DoCast(channelTarget, SPELL_BARRIER_CHANNEL);
-                        events.ScheduleEvent(EVENT_OOC_CHANNEL, 7000, 0, PHASE_INTRO);
-                        break;
-                    case EVENT_CLEAVE:
-                        DoCastVictim(SPELL_CLEAVE);
-                        events.ScheduleEvent(EVENT_CLEAVE, 24000, 0, PHASE_COMBAT);
-                        break;
-                    case EVENT_BLADE_TEMPEST:
-                        DoCast(me, SPELL_BLADE_TEMPEST);
-                        events.ScheduleEvent(EVENT_BLADE_TEMPEST, 24000, 0, PHASE_COMBAT);
-                        break;
-                    case EVENT_ENERVATING_BRAND:
-                        for (uint8 i = 0; i < RAID_MODE<uint8>(4, 8, 8, 10); i++)
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 45.0f, true))
-                                DoCast(target, SPELL_ENERVATING_BRAND);
-                        events.ScheduleEvent(EVENT_ENERVATING_BRAND, 26000, 0, PHASE_COMBAT);
-                        break;
-                    default:
-                        break;
+                    if (me->HealthBelowPctDamaged(50, damage) && _cloneCount == 1)
+                        DoAction(ACTION_CLONE);
                 }
+                else
+                {
+                    if ((me->HealthBelowPctDamaged(66, damage) && _cloneCount == 2)
+                        || (me->HealthBelowPctDamaged(33, damage) && _cloneCount == 1))
+                        DoAction(ACTION_CLONE);
+                }
+
+                if (me->GetHealth() > damage)
+                    instance->SetData(DATA_BALTHARUS_SHARED_HEALTH, me->GetHealth() - damage);
             }
+
+            void UpdateAI(uint32 const diff)
+            {
+                if (!UpdateVictim() && !(events.GetPhaseMask() & PHASE_INTRO_MASK))
+                return;
+
+                if (!(events.GetPhaseMask() & PHASE_INTRO_MASK))
+                    me->SetHealth(instance->GetData(DATA_BALTHARUS_SHARED_HEALTH));
+
+                events.Update(diff);
+
+                if (me->HasUnitState(UNIT_STAT_CASTING) && !(events.GetPhaseMask() & PHASE_INTRO_MASK))
+                    return;
+
+                while (uint32 eventId = events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_INTRO_TALK:
+                            Talk(SAY_BALTHARUS_INTRO);
+                            break;
+                        case EVENT_OOC_CHANNEL:
+                            if (Creature* channelTarget = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_CRYSTAL_CHANNEL_TARGET)))
+                                DoCast(channelTarget, SPELL_BARRIER_CHANNEL);
+                            events.ScheduleEvent(EVENT_OOC_CHANNEL, 7000, 0, PHASE_INTRO);
+                            break;
+                        case EVENT_CLEAVE:
+                            DoCastVictim(SPELL_CLEAVE);
+                            events.ScheduleEvent(EVENT_CLEAVE, 24000, 0, PHASE_COMBAT);
+                            break;
+                        case EVENT_BLADE_TEMPEST:
+                DoCast(me, SPELL_BLADE_TEMPEST);
+                            events.ScheduleEvent(EVENT_BLADE_TEMPEST, 24000, 0, PHASE_COMBAT);
+                            break;
+                        case EVENT_ENERVATING_BRAND:
+                            for (uint8 i = 0; i < RAID_MODE<uint8>(4, 8, 8, 10); i++)
+                                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 45.0f, true))
+                                    DoCast(target, SPELL_ENERVATING_BRAND);
+                            events.ScheduleEvent(EVENT_ENERVATING_BRAND, 26000, 0, PHASE_COMBAT);
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
             DoMeleeAttackIfReady();
         }
 
-    private:
-        uint8 _cloneCount;
-        bool _introDone;
+        private:
+            uint8 _cloneCount;
+            bool _introDone;
     };
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return GetRubySanctumAI<boss_baltharus_the_warbornAI>(creature);
-    }
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return GetRubySanctumAI<boss_baltharus_the_warbornAI>(creature);
+        }
 };
 
 class npc_baltharus_the_warborn_clone : public CreatureScript
 {
 public:
-    npc_baltharus_the_warborn_clone() : CreatureScript("npc_baltharus_the_warborn_clone") { }
+        npc_baltharus_the_warborn_clone() : CreatureScript("npc_baltharus_the_warborn_clone") { }
 
-    struct npc_baltharus_the_warborn_cloneAI : public ScriptedAI
-    {
-        npc_baltharus_the_warborn_cloneAI(Creature* creature) : ScriptedAI(creature),
-            _instance(creature->GetInstanceScript())
+        struct npc_baltharus_the_warborn_cloneAI : public ScriptedAI
         {
-        }
-
-        void EnterCombat(Unit* /*who*/)
-        {
-            DoZoneInCombat();
-            _events.Reset();
-            _events.ScheduleEvent(EVENT_CLEAVE, urand(5000, 10000));
-            _events.ScheduleEvent(EVENT_BLADE_TEMPEST, urand(18000, 25000));
-            _events.ScheduleEvent(EVENT_ENERVATING_BRAND, urand(10000, 15000));
-        }
-
-        void DamageTaken(Unit* /*attacker*/, uint32& damage)
-        {
-            // Setting DATA_BALTHARUS_SHARED_HEALTH to 0 when killed would bug the boss.
-            if (_instance && me->GetHealth() > damage)
-                _instance->SetData(DATA_BALTHARUS_SHARED_HEALTH, me->GetHealth() - damage);
-        }
-
-        void JustDied(Unit* killer)
-        {
-            // This is here because DamageTaken wont trigger if the damage is deadly.
-            if (_instance)
-                if (Creature* baltharus = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_BALTHARUS_THE_WARBORN)))
-                    killer->Kill(baltharus);
-        }
-
-        void UpdateAI(uint32 const diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (_instance)
-                me->SetHealth(_instance->GetData(DATA_BALTHARUS_SHARED_HEALTH));
-
-            _events.Update(diff);
-
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
-
-            while (uint32 eventId = _events.ExecuteEvent())
+            npc_baltharus_the_warborn_cloneAI(Creature* creature) : ScriptedAI(creature),
+                _instance(creature->GetInstanceScript())
             {
-                switch (eventId)
-                {
-                case EVENT_CLEAVE:
-                    DoCastVictim(SPELL_CLEAVE);
-                    _events.ScheduleEvent(EVENT_CLEAVE, 24000);
-                    break;
-                case EVENT_BLADE_TEMPEST:
-                    DoCastVictim(SPELL_BLADE_TEMPEST);
-                    _events.ScheduleEvent(EVENT_BLADE_TEMPEST, 24000);
-                    break;
-                case EVENT_ENERVATING_BRAND:
-                    for (uint8 i = 0; i < RAID_MODE<uint8>(4, 8, 8, 10); i++)
-                        if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 45.0f, true))
-                            DoCast(target, SPELL_ENERVATING_BRAND);
-                    _events.ScheduleEvent(EVENT_ENERVATING_BRAND, 26000);
-                    break;
-                default:
-                    break;
-                }
             }
 
-            DoMeleeAttackIfReady();
-        }
+            void EnterCombat(Unit* /*who*/)
+            {
+                DoZoneInCombat();
+                _events.Reset();
+                _events.ScheduleEvent(EVENT_CLEAVE, urand(5000, 10000));
+                _events.ScheduleEvent(EVENT_BLADE_TEMPEST, urand(18000, 25000));
+                _events.ScheduleEvent(EVENT_ENERVATING_BRAND, urand(10000, 15000));
+            }
 
-    private:
-        EventMap _events;
-        InstanceScript* _instance;
+            void DamageTaken(Unit* /*attacker*/, uint32& damage)
+            {
+                // Setting DATA_BALTHARUS_SHARED_HEALTH to 0 when killed would bug the boss.
+                if (_instance && me->GetHealth() > damage)
+                    _instance->SetData(DATA_BALTHARUS_SHARED_HEALTH, me->GetHealth() - damage);
+            }
+
+            void JustDied(Unit* killer)
+            {
+                // This is here because DamageTaken wont trigger if the damage is deadly.
+                if (_instance)
+                    if (Creature* baltharus = ObjectAccessor::GetCreature(*me, _instance->GetData64(DATA_BALTHARUS_THE_WARBORN)))
+                        killer->Kill(baltharus);
+            }
+
+            void UpdateAI(uint32 const diff)
+            {
+                if (!UpdateVictim())
+            return;
+
+                if (_instance)
+                    me->SetHealth(_instance->GetData(DATA_BALTHARUS_SHARED_HEALTH));
+
+                _events.Update(diff);
+
+                if (me->HasUnitState(UNIT_STAT_CASTING))
+                return;
+
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case EVENT_CLEAVE:
+                            DoCastVictim(SPELL_CLEAVE);
+                            _events.ScheduleEvent(EVENT_CLEAVE, 24000);
+                              break;
+                        case EVENT_BLADE_TEMPEST:
+                            DoCastVictim(SPELL_BLADE_TEMPEST);
+                            _events.ScheduleEvent(EVENT_BLADE_TEMPEST, 24000);
+                              break;
+                        case EVENT_ENERVATING_BRAND:
+                            for (uint8 i = 0; i < RAID_MODE<uint8>(4, 8, 8, 10); i++)
+                                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 45.0f, true))
+                                    DoCast(target, SPELL_ENERVATING_BRAND);
+                            _events.ScheduleEvent(EVENT_ENERVATING_BRAND, 26000);
+                              break;
+                        default:
+                              break;
+                    }
+               }
+
+                DoMeleeAttackIfReady();
+            }
+
+        private:
+            EventMap _events;
+            InstanceScript* _instance;
     };
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return GetRubySanctumAI<npc_baltharus_the_warborn_cloneAI>(creature);
-    }
+        CreatureAI* GetAI(Creature* creature) const
+        {
+            return GetRubySanctumAI<npc_baltharus_the_warborn_cloneAI>(creature);
+        }
 };
 
 class spell_baltharus_enervating_brand_trigger : public SpellScriptLoader
 {
-public:
-    spell_baltharus_enervating_brand_trigger() : SpellScriptLoader("spell_baltharus_enervating_brand_trigger") { }
+    public:
+        spell_baltharus_enervating_brand_trigger() : SpellScriptLoader("spell_baltharus_enervating_brand_trigger") { }
 
-    class spell_baltharus_enervating_brand_trigger_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_baltharus_enervating_brand_trigger_SpellScript);
-
-        void CheckDistance()
+        class spell_baltharus_enervating_brand_trigger_SpellScript : public SpellScript
         {
-            if (Unit* caster = GetOriginalCaster())
+            PrepareSpellScript(spell_baltharus_enervating_brand_trigger_SpellScript);
+
+            void CheckDistance()
             {
-                if (Unit* target = GetHitUnit())
-                    target->CastSpell(caster, SPELL_SIPHONED_MIGHT, true);
+                if (Unit* caster = GetOriginalCaster())
+                {
+                    if (Unit* target = GetHitUnit())
+                        target->CastSpell(caster, SPELL_SIPHONED_MIGHT, true);
+                }
             }
-        }
 
-        void Register()
+            void Register()
+            {
+                OnHit += SpellHitFn(spell_baltharus_enervating_brand_trigger_SpellScript::CheckDistance);
+            }
+        };
+
+        SpellScript* GetSpellScript() const
         {
-            OnHit += SpellHitFn(spell_baltharus_enervating_brand_trigger_SpellScript::CheckDistance);
+            return new spell_baltharus_enervating_brand_trigger_SpellScript();
         }
-    };
-
-    SpellScript* GetSpellScript() const
-    {
-        return new spell_baltharus_enervating_brand_trigger_SpellScript();
-    }
 };
 
 void AddSC_boss_baltharus_the_warborn()

@@ -17,17 +17,17 @@
 //------------------------------------------------------------------------------
 // Structures
 
-typedef union _BYTE_AND_WORD_PTR
+union TByteAndWordPtr
 {
     short * pw;
     unsigned char * pb;
-} BYTE_AND_WORD_PTR;
+};
 
-typedef union _WORD_AND_BYTE_ARRAY
+union TWordAndByteArray
 {
     short w;
     unsigned char b[2];
-} WORD_AND_BYTE_ARRAY;
+};
 
 //-----------------------------------------------------------------------------
 // Tables necessary dor decompression
@@ -63,8 +63,8 @@ static long step_table[] =
 int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuffer, int dwInLength, int nChannels, int nCmpLevel)
 //                ECX                          EDX
 {
-    WORD_AND_BYTE_ARRAY Wcmp;
-    BYTE_AND_WORD_PTR out;                    // Pointer to the output buffer
+    TWordAndByteArray Wcmp;
+    TByteAndWordPtr out;                    // Pointer to the output buffer
     long SInt32Array1[2];
     long SInt32Array2[2];
     long SInt32Array3[2];
@@ -83,24 +83,23 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
     int nLength;
     int nIndex;
     int nValue;
-    int i, chnl;
 
     // If less than 2 bytes remain, don't decompress anything
 //  pbSaveOutBuffer = pbOutBuffer;
     out.pb = pbOutBuffer;
-    if(nBytesRemains < 2)
+    if (nBytesRemains < 2)
         return 2;
 
     Wcmp.b[1] = (unsigned char)(nCmpLevel - 1);
     Wcmp.b[0] = (unsigned char)0;
 
     *out.pw++ = BSWAP_INT16_SIGNED(Wcmp.w);
-    if((out.pb - pbOutBuffer + (nChannels * 2)) > nBytesRemains)
+    if ((out.pb - pbOutBuffer + (nChannels * 2)) > nBytesRemains)
         return (int)(out.pb - pbOutBuffer + (nChannels * 2));
 
     SInt32Array1[0] = SInt32Array1[1] = 0x2C;
 
-    for(i = 0; i < nChannels; i++)
+    for(int i = 0; i < nChannels; i++)
     {
         nOneWord = BSWAP_INT16_SIGNED(*pwInBuffer++);
         *out.pw++ = BSWAP_INT16_SIGNED((short)nOneWord);
@@ -109,7 +108,7 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
 
     // Weird. But it's there
     nLength = dwInLength;
-    if(nLength < 0)                     // mov eax, dwInLength; cdq; sub eax, edx;
+    if (nLength < 0)                     // mov eax, dwInLength; cdq; sub eax, edx;
         nLength++;
 
     nLength = (nLength / 2) - (int)(out.pb - pbOutBuffer);
@@ -120,14 +119,14 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
 
     // ebx - nChannels
     // ecx - pwOutPos
-    for(chnl = nChannels; chnl < nWordsRemains; chnl++)
+    for(int chnl = nChannels; chnl < nWordsRemains; chnl++)
     {
         // 1500F030
-        if((out.pb - pbOutBuffer + 2) > nBytesRemains)
+        if ((out.pb - pbOutBuffer + 2) > nBytesRemains)
             return (int)(out.pb - pbOutBuffer + 2);
 
         // Switch index
-        if(nChannels == 2)
+        if (nChannels == 2)
             nIndex = (nIndex == 0) ? 1 : 0;
 
         // Load one word from the input stream
@@ -148,9 +147,9 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
         dwStopBit = (unsigned long)nCmpLevel;
 
         // edi - nIndex;
-        if(nValue < (nTableValue >> nCmpLevel))
+        if (nValue < (nTableValue >> nCmpLevel))
         {
-            if(SInt32Array1[nIndex] != 0)
+            if (SInt32Array1[nIndex] != 0)
                 SInt32Array1[nIndex]--;
             *out.pb++ = 0x80;
         }
@@ -158,11 +157,11 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
         {
             while(nValue > nTableValue * 2)
             {
-                if(SInt32Array1[nIndex] >= 0x58 || nLength == 0)
+                if (SInt32Array1[nIndex] >= 0x58 || nLength == 0)
                     break;
 
                 SInt32Array1[nIndex] += 8;
-                if(SInt32Array1[nIndex] > 0x58)
+                if (SInt32Array1[nIndex] > 0x58)
                     SInt32Array1[nIndex] = 0x58;
 
                 nTableValue = step_table[SInt32Array1[nIndex]];
@@ -179,28 +178,28 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
             for(var_1C = 0, dwBit = 1; ; dwBit <<= 1)
             {
 //              esi = var_1C + nTableValue;
-                if((var_1C + nTableValue) <= nValue)
+                if ((var_1C + nTableValue) <= nValue)
                 {
                     var_1C += nTableValue;
                     dwBitBuff |= dwBit;
                 }
-                if(dwBit == dwStopBit)
+                if (dwBit == dwStopBit)
                     break;
 
                 nTableValue >>= 1;
             }
 
             nValue = SInt32Array2[nIndex];
-            if(ebx != 0)
+            if (ebx != 0)
             {
                 nValue -= (var_1C + var_2C);
-                if(nValue < -32768)
+                if (nValue < -32768)
                     nValue = -32768;
             }
             else
             {
                 nValue += (var_1C + var_2C);
-                if(nValue > 32767)
+                if (nValue > 32767)
                     nValue = 32767;
             }
 
@@ -208,9 +207,9 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
             *out.pb++ = (unsigned char)(dwBitBuff | ebx);
             nTableValue = Table1503F120[dwBitBuff & 0x1F];
             SInt32Array1[nIndex]  = SInt32Array1[nIndex] + nTableValue;
-            if(SInt32Array1[nIndex] < 0)
+            if (SInt32Array1[nIndex] < 0)
                 SInt32Array1[nIndex] = 0;
-            else if(SInt32Array1[nIndex] > 0x58)
+            else if (SInt32Array1[nIndex] > 0x58)
                 SInt32Array1[nIndex] = 0x58;
         }
     }
@@ -224,14 +223,14 @@ int CompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, short * pwInBuff
 // 1500F230
 int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char * pbInBuffer, int dwInLength, int nChannels)
 {
-    BYTE_AND_WORD_PTR out;                // Output buffer
-    BYTE_AND_WORD_PTR in;
+    TByteAndWordPtr out;                // Output buffer
+    TByteAndWordPtr in;
     unsigned char * pbInBufferEnd = (pbInBuffer + dwInLength);
     long SInt32Array1[2];
     long SInt32Array2[2];
     long nOneWord;
+    int dwOutLengthCopy = dwOutLength;
     int nIndex;
-    int i;
 
     SInt32Array1[0] = SInt32Array1[1] = 0x2C;
     out.pb = pbOutBuffer;
@@ -239,15 +238,15 @@ int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char 
     in.pw++;
 
     // Fill the Uint32Array2 array by channel values.
-    for(i = 0; i < nChannels; i++)
+    for(int i = 0; i < nChannels; i++)
     {
         nOneWord = BSWAP_INT16_SIGNED(*in.pw++);
         SInt32Array2[i] = nOneWord;
-        if(dwOutLength < 2)
+        if (dwOutLengthCopy < 2)
             return (int)(out.pb - pbOutBuffer);
 
         *out.pw++ = BSWAP_INT16_SIGNED((short)nOneWord);
-        dwOutLength -= sizeof(short);
+        dwOutLengthCopy -= sizeof(short);
     }
 
     // Get the initial index
@@ -259,19 +258,19 @@ int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char 
         unsigned char nOneByte = *in.pb++;
 
         // Switch index
-        if(nChannels == 2)
+        if (nChannels == 2)
             nIndex = (nIndex == 0) ? 1 : 0;
 
         // 1500F2A2: Get one byte from input buffer
-        if(nOneByte & 0x80)
+        if (nOneByte & 0x80)
         {
             switch(nOneByte & 0x7F)
             {
                 case 0:     // 1500F315
-                    if(SInt32Array1[nIndex] != 0)
+                    if (SInt32Array1[nIndex] != 0)
                         SInt32Array1[nIndex]--;
 
-                    if(dwOutLength < 2)
+                    if (dwOutLengthCopy < 2)
                         return (int)(out.pb - pbOutBuffer);
 
                     *out.pw++ = BSWAP_INT16_SIGNED((unsigned short)SInt32Array2[nIndex]);
@@ -280,10 +279,10 @@ int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char 
 
                 case 1:     // 1500F2E8
                     SInt32Array1[nIndex] += 8;
-                    if(SInt32Array1[nIndex] > 0x58)
+                    if (SInt32Array1[nIndex] > 0x58)
                         SInt32Array1[nIndex] = 0x58;
 
-                    if(nChannels == 2)
+                    if (nChannels == 2)
                         nIndex = (nIndex == 0) ? 1 : 0;
                     break;
 
@@ -292,10 +291,10 @@ int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char 
 
                 default:    // 1500F2C4
                     SInt32Array1[nIndex] -= 8;
-                    if(SInt32Array1[nIndex] < 0)
+                    if (SInt32Array1[nIndex] < 0)
                         SInt32Array1[nIndex] = 0;
 
-                    if(nChannels == 2)
+                    if (nChannels == 2)
                         nIndex = (nIndex == 0) ? 1 : 0;
                     break;
             }
@@ -307,39 +306,39 @@ int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char 
             long temp2 = temp1 >> pbInBuffer[1];               // ESI
             long temp3 = SInt32Array2[nIndex];                 // ECX
 
-            if(nOneByte & 0x01)          // EBX = nOneByte
+            if (nOneByte & 0x01)          // EBX = nOneByte
                 temp2 += (temp1 >> 0);
 
-            if(nOneByte & 0x02)
+            if (nOneByte & 0x02)
                 temp2 += (temp1 >> 1);
 
-            if(nOneByte & 0x04)
+            if (nOneByte & 0x04)
                 temp2 += (temp1 >> 2);
 
-            if(nOneByte & 0x08)
+            if (nOneByte & 0x08)
                 temp2 += (temp1 >> 3);
 
-            if(nOneByte & 0x10)
+            if (nOneByte & 0x10)
                 temp2 += (temp1 >> 4);
 
-            if(nOneByte & 0x20)
+            if (nOneByte & 0x20)
                 temp2 += (temp1 >> 5);
 
-            if(nOneByte & 0x40)
+            if (nOneByte & 0x40)
             {
                 temp3 = temp3 - temp2;
-                if(temp3 <= -32768)
+                if (temp3 <= -32768)
                     temp3 = -32768;
             }
             else
             {
                 temp3 = temp3 + temp2;
-                if(temp3 >= 32767)
+                if (temp3 >= 32767)
                     temp3 = 32767;
             }
 
             SInt32Array2[nIndex] = temp3;
-            if(dwOutLength < 2)
+            if (dwOutLength < 2)
                 break;
 
             // Store the output 16-bit value
@@ -348,9 +347,9 @@ int DecompressADPCM(unsigned char * pbOutBuffer, int dwOutLength, unsigned char 
 
             SInt32Array1[nIndex] += Table1503F120[nOneByte & 0x1F];
 
-            if(SInt32Array1[nIndex] < 0)
+            if (SInt32Array1[nIndex] < 0)
                 SInt32Array1[nIndex] = 0;
-            else if(SInt32Array1[nIndex] > 0x58)
+            else if (SInt32Array1[nIndex] > 0x58)
                 SInt32Array1[nIndex] = 0x58;
         }
     }

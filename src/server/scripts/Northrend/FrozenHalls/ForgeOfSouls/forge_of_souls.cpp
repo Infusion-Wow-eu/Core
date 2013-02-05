@@ -1,10 +1,15 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -157,11 +162,11 @@ public:
     {
         npc_sylvanas_fosAI(Creature* creature) : ScriptedAI(creature)
         {
-            instance = me->GetInstanceScript();
+            pInstance = me->GetInstanceScript();
             me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
         }
 
-        InstanceScript* instance;
+        InstanceScript* pInstance;
 
         EventMap events;
         Phase phase;
@@ -190,7 +195,7 @@ public:
         {
             if (phase == PHASE_INTRO)
             {
-                if (!instance)
+                if (!pInstance)
                     return;
 
                 events.Update(diff);
@@ -252,10 +257,10 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*Sender*/, uint32 action)
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
     {
         player->PlayerTalkClass->ClearMenus();
-        switch (action)
+        switch (uiAction)
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->CLOSE_GOSSIP_MENU();
@@ -283,11 +288,11 @@ public:
     {
         npc_jaina_fosAI(Creature* creature) : ScriptedAI(creature)
         {
-            instance = me->GetInstanceScript();
+            pInstance = me->GetInstanceScript();
             me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
         }
 
-        InstanceScript* instance;
+        InstanceScript* pInstance;
 
         EventMap events;
         Phase phase;
@@ -316,7 +321,7 @@ public:
         {
             if (phase == PHASE_INTRO)
             {
-                if (!instance)
+                if (!pInstance)
                     return;
 
                 events.Update(diff);
@@ -389,10 +394,10 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*Sender*/, uint32 action)
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
     {
         player->PlayerTalkClass->ClearMenus();
-        switch (action)
+        switch (uiAction)
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->CLOSE_GOSSIP_MENU();
@@ -442,7 +447,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -498,7 +503,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -556,7 +561,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -613,7 +618,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -673,7 +678,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -739,7 +744,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -812,7 +817,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())
@@ -879,7 +884,7 @@ public:
 
             events.Update(diff);
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
+            if (me->HasUnitState(UNIT_STAT_CASTING))
                 return;
 
             while (uint32 eventId = events.ExecuteEvent())

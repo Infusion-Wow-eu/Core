@@ -1,30 +1,35 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "gamePCH.h"
 #include "Common.h"
 #include "CharacterDatabaseCleaner.h"
 #include "World.h"
 #include "Database/DatabaseEnv.h"
-#include "SpellMgr.h"
 #include "DBCStores.h"
 
-void CharacterDatabaseCleaner::CleanDatabase()
+void CharacterDatabaseCleaner::CleanDatabase ()
 {
     // config to disable
     if (!sWorld->getBoolConfig(CONFIG_CLEAN_CHARACTER_DB))
@@ -33,7 +38,6 @@ void CharacterDatabaseCleaner::CleanDatabase()
     sLog->outString("Cleaning character database...");
 
     uint32 oldMSTime = getMSTime();
-
     // check flags which clean ups are necessary
     QueryResult result = CharacterDatabase.Query("SELECT value FROM worldstates WHERE entry = 20004");
     if (!result)
@@ -68,7 +72,7 @@ void CharacterDatabaseCleaner::CleanDatabase()
     sLog->outString();
 }
 
-void CharacterDatabaseCleaner::CheckUnique(const char* column, const char* table, bool (*check)(uint32))
+void CharacterDatabaseCleaner::CheckUnique (const char* column, const char* table, bool (*check) (uint32))
 {
     QueryResult result = CharacterDatabase.PQuery("SELECT DISTINCT %s FROM %s", column, table);
     if (!result)
@@ -79,9 +83,10 @@ void CharacterDatabaseCleaner::CheckUnique(const char* column, const char* table
 
     bool found = false;
     std::ostringstream ss;
+
     do
     {
-        Field* fields = result->Fetch();
+        Field *fields = result->Fetch();
 
         uint32 id = fields[0].GetUInt32();
 
@@ -93,7 +98,7 @@ void CharacterDatabaseCleaner::CheckUnique(const char* column, const char* table
                 found = true;
             }
             else
-                ss << ',';
+                ss << ", ";
 
             ss << id;
         }
@@ -102,57 +107,57 @@ void CharacterDatabaseCleaner::CheckUnique(const char* column, const char* table
 
     if (found)
     {
-        ss << ')';
+        ss << ")";
         CharacterDatabase.Execute(ss.str().c_str());
     }
 }
 
-bool CharacterDatabaseCleaner::AchievementProgressCheck(uint32 criteria)
+bool CharacterDatabaseCleaner::AchievementProgressCheck (uint32 criteria)
 {
     return sAchievementCriteriaStore.LookupEntry(criteria);
 }
 
-void CharacterDatabaseCleaner::CleanCharacterAchievementProgress()
+void CharacterDatabaseCleaner::CleanCharacterAchievementProgress ()
 {
     CheckUnique("criteria", "character_achievement_progress", &AchievementProgressCheck);
 }
 
-bool CharacterDatabaseCleaner::SkillCheck(uint32 skill)
+bool CharacterDatabaseCleaner::SkillCheck (uint32 skill)
 {
     return sSkillLineStore.LookupEntry(skill);
 }
 
-void CharacterDatabaseCleaner::CleanCharacterSkills()
+void CharacterDatabaseCleaner::CleanCharacterSkills ()
 {
     CheckUnique("skill", "character_skills", &SkillCheck);
 }
 
-bool CharacterDatabaseCleaner::SpellCheck(uint32 spell_id)
+bool CharacterDatabaseCleaner::SpellCheck (uint32 spell_id)
 {
-    return sSpellMgr->GetSpellInfo(spell_id) && !GetTalentSpellPos(spell_id);
+    return sSpellStore.LookupEntry(spell_id) && !GetTalentSpellPos(spell_id);
 }
 
-void CharacterDatabaseCleaner::CleanCharacterSpell()
+void CharacterDatabaseCleaner::CleanCharacterSpell ()
 {
     CheckUnique("spell", "character_spell", &SpellCheck);
 }
 
-bool CharacterDatabaseCleaner::TalentCheck(uint32 talent_id)
+bool CharacterDatabaseCleaner::TalentCheck (uint32 talent_id)
 {
-    TalentEntry const* talentInfo = sTalentStore.LookupEntry(talent_id);
+    TalentEntry const *talentInfo = sTalentStore.LookupEntry(talent_id);
     if (!talentInfo)
         return false;
 
     return sTalentTabStore.LookupEntry(talentInfo->TalentTab);
 }
 
-void CharacterDatabaseCleaner::CleanCharacterTalent()
+void CharacterDatabaseCleaner::CleanCharacterTalent ()
 {
     CharacterDatabase.DirectPExecute("DELETE FROM character_talent WHERE spec > %u", MAX_TALENT_SPECS);
     CheckUnique("spell", "character_talent", &TalentCheck);
 }
 
-void CharacterDatabaseCleaner::CleanCharacterQuestStatus()
+void CharacterDatabaseCleaner::CleanCharacterQuestStatus ()
 {
     CharacterDatabase.DirectExecute("DELETE FROM character_queststatus WHERE status = 0");
 }

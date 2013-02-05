@@ -188,4 +188,3 @@ int my_sync_dir_by_file(const char *file_name __attribute__((unused)),
 }
 
 #endif /* NEED_EXPLICIT_SYNC_DIR */
-

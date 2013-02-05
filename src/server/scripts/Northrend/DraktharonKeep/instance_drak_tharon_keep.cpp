@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -89,7 +92,7 @@ public:
             return false;
         }
 
-        void OnGameObjectCreate(GameObject* go)
+        void OnGameObjectCreate(GameObject* go, bool /*add*/)
         {
             switch (go->GetEntry())
             {
@@ -108,7 +111,7 @@ public:
             }
         }
 
-        void OnCreatureCreate(Creature* creature)
+        void OnCreatureCreate(Creature* creature, bool /*add*/)
         {
             switch (creature->GetEntry())
             {
@@ -123,6 +126,8 @@ public:
                     break;
                 case NPC_THARON_JA:
                     uiTharonJa = creature->GetGUID();
+                    creature->SetReactState(REACT_PASSIVE);
+                    creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                     break;
             }
         }
@@ -201,6 +206,18 @@ public:
             return str_data;
         }
 
+        void Update(uint32 diff)
+        {
+            if (!instance->HavePlayers())
+                return;
+
+            if (GetData(DATA_TROLLGORE_EVENT) == DONE && GetData(DATA_NOVOS_EVENT) == DONE && GetData(DATA_DRED_EVENT) == DONE)
+                if (Creature* pTharonJa = instance->GetCreature(uiTharonJa)){
+                    pTharonJa->SetReactState(REACT_AGGRESSIVE);
+                    pTharonJa->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
+                }
+        }
+
         void Load(const char* in)
         {
             if (!in)
@@ -241,5 +258,5 @@ public:
 
 void AddSC_instance_drak_tharon()
 {
-    new instance_drak_tharon();
+    new instance_drak_tharon;
 }

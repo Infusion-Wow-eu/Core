@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -77,7 +80,8 @@ public:
             {
                 player->SendUpdateWorldState(WORLD_STATE_CENTRIFUGE_CONSTRUCT_SHOW, 1);
                 player->SendUpdateWorldState(WORLD_STATE_CENTRIFUGE_CONSTRUCT_AMOUNT, centrifugueConstructCounter);
-            } else
+            }
+            else
             {
                 player->SendUpdateWorldState(WORLD_STATE_CENTRIFUGE_CONSTRUCT_SHOW, 0);
                 player->SendUpdateWorldState(WORLD_STATE_CENTRIFUGE_CONSTRUCT_AMOUNT, 0);
@@ -94,11 +98,11 @@ public:
             if (!varos)
                 return;
 
-            if (Creature* drake = varos->SummonCreature(NPC_AZURE_RING_GUARDIAN, varos->GetPositionX(), varos->GetPositionY(), varos->GetPositionZ()+40))
+            if (Creature* drake = varos->SummonCreature(NPC_AZURE_RING_GUARDIAN, varos->GetPositionX(), varos->GetPositionY(), varos->GetPositionZ() + 40))
                 drake->AI()->DoAction(ACTION_CALL_DRAGON_EVENT);
         }
 
-        void OnCreatureCreate(Creature* creature)
+        void OnCreatureCreate(Creature* creature, bool /*add*/)
         {
             switch (creature->GetEntry())
             {
@@ -121,7 +125,7 @@ public:
             }
         }
 
-        void OnGameObjectCreate(GameObject* go)
+        void OnGameObjectCreate(GameObject* go, bool /*add*/)
         {
             switch (go->GetEntry())
             {
@@ -173,7 +177,7 @@ public:
         {
             switch (type)
             {
-                case DATA_UROM_PLATAFORM:
+                case DATA_UROM_PLATFORM:
                     platformUrom = data;
                     break;
             }
@@ -183,9 +187,9 @@ public:
         {
             switch (type)
             {
-                case DATA_UROM_PLATAFORM:              return platformUrom;
+                case DATA_UROM_PLATFORM:          return platformUrom;
                 // used by condition system
-                case DATA_UROM_EVENT:                  return GetBossState(DATA_UROM_EVENT);
+                case DATA_UROM_EVENT:             return GetBossState(DATA_UROM_EVENT);
             }
 
             return 0;
@@ -258,6 +262,7 @@ public:
 
             OUT_LOAD_INST_DATA_COMPLETE;
         }
+
         private:
             uint64 drakosGUID;
             uint64 varosGUID;

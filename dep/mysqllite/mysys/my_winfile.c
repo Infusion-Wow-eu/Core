@@ -14,12 +14,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
 
 /*
-  The purpose of this file is to provide implementation of file IO routines on 
+  The purpose of this file is to provide implementation of file IO routines on
   Windows that can be thought as drop-in replacement for corresponding C runtime
   functionality.
 
-  Compared to Windows CRT, this one 
-  - does not have the same file descriptor 
+  Compared to Windows CRT, this one
+  - does not have the same file descriptor
   limitation (default is 16384 and can  be increased further, whereas CRT poses
   a hard limit of 2048 file descriptors)
   - the file operations are not serialized
@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
   - no text mode for files, all IO is "binary"
 
   Naming convention:
-  All routines are prefixed with my_win_, e.g Posix open() is implemented with 
+  All routines are prefixed with my_win_, e.g Posix open() is implemented with
   my_win_open()
 
   Implemented are
@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
   - Windows CRT equvalients (my_get_osfhandle, open_osfhandle)
 
   Worth to note:
-  - File descriptors used here are located in a range that is not compatible 
+  - File descriptors used here are located in a range that is not compatible
   with CRT on purpose. Attempt to use a file descriptor from Windows CRT library
   range in my_win_* function will be punished with DBUG_ASSERT()
 
@@ -217,7 +217,7 @@ File my_win_sopen(const char *path, int oflag, int shflag, int pmode)
 
   /* decode file attribute flags if _O_CREAT was specified */
   fileattrib= FILE_ATTRIBUTE_NORMAL;     /* default */
-  if (oflag & _O_CREAT) 
+  if (oflag & _O_CREAT)
   {
     _umask((mask= _umask(0)));
 
@@ -226,7 +226,7 @@ File my_win_sopen(const char *path, int oflag, int shflag, int pmode)
   }
 
   /* Set temporary file (delete-on-close) attribute if requested. */
-  if (oflag & _O_TEMPORARY) 
+  if (oflag & _O_TEMPORARY)
   {
     fileattrib|= FILE_FLAG_DELETE_ON_CLOSE;
     fileaccess|= DELETE;
@@ -243,7 +243,7 @@ File my_win_sopen(const char *path, int oflag, int shflag, int pmode)
     fileattrib|= FILE_FLAG_RANDOM_ACCESS;
 
   /* try to open/create the file  */
-  if ((osfh= CreateFile(path, fileaccess, fileshare, &SecurityAttributes, 
+  if ((osfh= CreateFile(path, fileaccess, fileshare, &SecurityAttributes,
     filecreate, fileattrib, NULL)) == INVALID_HANDLE_VALUE)
   {
     /*
@@ -255,7 +255,7 @@ File my_win_sopen(const char *path, int oflag, int shflag, int pmode)
     DBUG_RETURN(-1);                 /* return error to caller */
   }
 
-  if ((fh= my_open_osfhandle(osfh, 
+  if ((fh= my_open_osfhandle(osfh,
     oflag & (_O_APPEND | _O_RDONLY | _O_TEXT))) == -1)
   {
     CloseHandle(osfh);
@@ -267,7 +267,7 @@ File my_win_sopen(const char *path, int oflag, int shflag, int pmode)
 File my_win_open(const char *path, int flags)
 {
   DBUG_ENTER("my_win_open");
-  DBUG_RETURN(my_win_sopen((char *) path, flags | _O_BINARY, _SH_DENYNO, 
+  DBUG_RETURN(my_win_sopen((char *) path, flags | _O_BINARY, _SH_DENYNO,
     _S_IREAD | S_IWRITE));
 }
 
@@ -349,7 +349,7 @@ size_t my_win_read(File Filedes, uchar *Buffer, size_t Count)
   DBUG_RETURN(nBytesRead);
 }
 
-size_t my_win_pwrite(File Filedes, const uchar *Buffer, size_t Count, 
+size_t my_win_pwrite(File Filedes, const uchar *Buffer, size_t Count,
                      my_off_t offset)
 {
   DWORD         nBytesWritten;
@@ -358,7 +358,7 @@ size_t my_win_pwrite(File Filedes, const uchar *Buffer, size_t Count,
   LARGE_INTEGER li;
 
   DBUG_ENTER("my_win_pwrite");
-  DBUG_PRINT("my",("Filedes: %d, Buffer: %p, Count: %llu, offset: %llu", 
+  DBUG_PRINT("my",("Filedes: %d, Buffer: %p, Count: %llu, offset: %llu",
     Filedes, Buffer, (ulonglong)Count, (ulonglong)offset));
 
   if(!Count)
@@ -391,7 +391,7 @@ my_off_t my_win_lseek(File fd, my_off_t pos, int whence)
   DBUG_ENTER("my_win_lseek");
 
   /* Check compatibility of Windows and Posix seek constants */
-  compile_time_assert(FILE_BEGIN == SEEK_SET && FILE_CURRENT == SEEK_CUR 
+  compile_time_assert(FILE_BEGIN == SEEK_SET && FILE_CURRENT == SEEK_CUR
     && FILE_END == SEEK_END);
 
   offset.QuadPart= pos;
@@ -414,7 +414,7 @@ size_t my_win_write(File fd, const uchar *Buffer, size_t Count)
   HANDLE hFile;
 
   DBUG_ENTER("my_win_write");
-  DBUG_PRINT("my",("Filedes: %d, Buffer: %p, Count %llu", fd, Buffer, 
+  DBUG_PRINT("my",("Filedes: %d, Buffer: %p, Count %llu", fd, Buffer,
       (ulonglong)Count));
 
   if(!Count)
@@ -428,11 +428,11 @@ size_t my_win_write(File fd, const uchar *Buffer, size_t Count)
   if(my_get_open_flags(fd) & _O_APPEND)
   {
     /*
-       Atomic append to the end of file is is done by special initialization of 
+       Atomic append to the end of file is is done by special initialization of
        the OVERLAPPED structure. See MSDN WriteFile documentation for more info.
     */
     memset(&ov, 0, sizeof(ov));
-    ov.Offset= FILE_WRITE_TO_END_OF_FILE; 
+    ov.Offset= FILE_WRITE_TO_END_OF_FILE;
     ov.OffsetHigh= -1;
     pov= &ov;
   }
@@ -515,9 +515,9 @@ FILE *my_win_fopen(const char *filename, const char *type)
   int flags= 0;
   DBUG_ENTER("my_win_open");
 
-  /* 
-    If we are not creating, then we need to use my_access to make sure  
-    the file exists since Windows doesn't handle files like "com1.sym" 
+  /*
+    If we are not creating, then we need to use my_access to make sure
+    the file exists since Windows doesn't handle files like "com1.sym"
     very  well
   */
   if (check_if_legal_filename(filename))
@@ -581,7 +581,7 @@ int my_win_fclose(FILE *file)
 /*
   Quick and dirty my_fstat() implementation for Windows.
   Use CRT fstat on temporarily allocated file descriptor.
-  Patch file size, because size that fstat returns is not 
+  Patch file size, because size that fstat returns is not
   reliable (may be outdated)
 */
 int my_win_fstat(File fd, struct _stati64 *buf)
@@ -593,7 +593,7 @@ int my_win_fstat(File fd, struct _stati64 *buf)
   DBUG_ENTER("my_win_fstat");
 
   hFile= my_get_osfhandle(fd);
-  if(!DuplicateHandle( GetCurrentProcess(), hFile, GetCurrentProcess(), 
+  if(!DuplicateHandle( GetCurrentProcess(), hFile, GetCurrentProcess(),
     &hDup ,0,FALSE,DUPLICATE_SAME_ACCESS))
   {
     my_osmaperr(GetLastError());

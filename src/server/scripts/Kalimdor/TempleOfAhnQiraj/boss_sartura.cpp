@@ -1,28 +1,35 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2013 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /* ScriptData
-SDName: Boss_Sartura
-SD%Complete: 95
-SDComment:
-SDCategory: Temple of Ahn'Qiraj
-EndScriptData */
+ SDName: Boss_Sartura
+ SD%Complete: 95
+ SDComment:
+ SDCategory: Temple of Ahn'Qiraj
+ EndScriptData */
 
 #include "ScriptPCH.h"
 
@@ -38,19 +45,20 @@ EndScriptData */
 #define SPELL_WHIRLWINDADD                           26038
 #define SPELL_KNOCKBACK                              26027
 
-class boss_sartura : public CreatureScript
-{
+class boss_sartura: public CreatureScript {
 public:
-    boss_sartura() : CreatureScript("boss_sartura") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new boss_sarturaAI (creature);
+    boss_sartura() :
+            CreatureScript("boss_sartura") {
     }
 
-    struct boss_sarturaAI : public ScriptedAI
-    {
-        boss_sarturaAI(Creature* creature) : ScriptedAI(creature) {}
+    CreatureAI* GetAI(Creature* pCreature) const {
+        return new boss_sarturaAI(pCreature);
+    }
+
+    struct boss_sarturaAI: public ScriptedAI {
+        boss_sarturaAI(Creature *c) :
+                ScriptedAI(c) {
+        }
 
         uint32 WhirlWind_Timer;
         uint32 WhirlWindRandom_Timer;
@@ -64,14 +72,13 @@ public:
         bool WhirlWind;
         bool AggroReset;
 
-        void Reset()
-        {
+        void Reset() {
             WhirlWind_Timer = 30000;
-            WhirlWindRandom_Timer = urand(3000, 7000);
+            WhirlWindRandom_Timer = 3000 + rand() % 4000;
             WhirlWindEnd_Timer = 15000;
-            AggroReset_Timer = urand(45000, 55000);
+            AggroReset_Timer = 45000 + rand() % 10000;
             AggroResetEnd_Timer = 5000;
-            EnrageHard_Timer = 10*60000;
+            EnrageHard_Timer = 10 * 60000;
 
             WhirlWind = false;
             AggroReset = false;
@@ -79,98 +86,91 @@ public:
             EnragedHard = false;
         }
 
-        void EnterCombat(Unit* /*who*/)
-        {
+        void EnterCombat(Unit * /*who*/) {
             DoScriptText(SAY_AGGRO, me);
         }
 
-         void JustDied(Unit* /*Killer*/)
-         {
-             DoScriptText(SAY_DEATH, me);
-         }
+        void JustDied(Unit* /*Killer*/) {
+            DoScriptText(SAY_DEATH, me);
+        }
 
-         void KilledUnit(Unit* /*victim*/)
-         {
-             DoScriptText(SAY_SLAY, me);
-         }
+        void KilledUnit(Unit* /*victim*/) {
+            DoScriptText(SAY_SLAY, me);
+        }
 
-        void UpdateAI(const uint32 diff)
-        {
+        void UpdateAI(const uint32 diff) {
             //Return since we have no target
             if (!UpdateVictim())
                 return;
 
-            if (WhirlWind)
-            {
-                if (WhirlWindRandom_Timer <= diff)
-                {
+            if (WhirlWind) {
+                if (WhirlWindRandom_Timer <= diff) {
                     //Attack random Gamers
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
-                    {
-                        me->AddThreat(target, 1.0f);
-                        me->TauntApply(target);
-                        AttackStart(target);
-                    }
-                    WhirlWindRandom_Timer = urand(3000, 7000);
-                } else WhirlWindRandom_Timer -= diff;
+                    Unit *pTarget = NULL;
+                    pTarget = SelectUnit(SELECT_TARGET_RANDOM, 1);
+                    if (pTarget)
+                        me->AddThreat(pTarget, 1.0f);
+                    me->TauntApply(pTarget);
+                    AttackStart(pTarget);
 
-                if (WhirlWindEnd_Timer <= diff)
-                {
+                    WhirlWindRandom_Timer = 3000 + rand() % 4000;
+                } else
+                    WhirlWindRandom_Timer -= diff;
+
+                if (WhirlWindEnd_Timer <= diff) {
                     WhirlWind = false;
-                    WhirlWind_Timer = urand(25000, 40000);
-                } else WhirlWindEnd_Timer -= diff;
+                    WhirlWind_Timer = 25000 + rand() % 15000;
+                } else
+                    WhirlWindEnd_Timer -= diff;
             }
 
-            if (!WhirlWind)
-            {
-                if (WhirlWind_Timer <= diff)
-                {
+            if (!WhirlWind) {
+                if (WhirlWind_Timer <= diff) {
                     DoCast(me, SPELL_WHIRLWIND);
                     WhirlWind = true;
                     WhirlWindEnd_Timer = 15000;
-                } else WhirlWind_Timer -= diff;
+                } else
+                    WhirlWind_Timer -= diff;
 
-                if (AggroReset_Timer <= diff)
-                {
+                if (AggroReset_Timer <= diff) {
                     //Attack random Gamers
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
-                    {
-                        me->AddThreat(target, 1.0f);
-                        me->TauntApply(target);
-                        AttackStart(target);
-                    }
-                    AggroReset = true;
-                    AggroReset_Timer = urand(2000, 5000);
-                } else AggroReset_Timer -= diff;
+                    Unit *pTarget = NULL;
+                    pTarget = SelectUnit(SELECT_TARGET_RANDOM, 1);
+                    if (pTarget)
+                        me->AddThreat(pTarget, 1.0f);
+                    me->TauntApply(pTarget);
+                    AttackStart(pTarget);
 
-                if (AggroReset)
-                {
-                    if (AggroResetEnd_Timer <= diff)
-                    {
+                    AggroReset = true;
+                    AggroReset_Timer = 2000 + rand() % 3000;
+                } else
+                    AggroReset_Timer -= diff;
+
+                if (AggroReset) {
+                    if (AggroResetEnd_Timer <= diff) {
                         AggroReset = false;
                         AggroResetEnd_Timer = 5000;
-                        AggroReset_Timer = urand(35000, 45000);
-                    } else AggroResetEnd_Timer -= diff;
+                        AggroReset_Timer = 35000 + rand() % 10000;
+                    } else
+                        AggroResetEnd_Timer -= diff;
                 }
 
                 //If she is 20% enrage
-                if (!Enraged)
-                {
-                    if (!HealthAbovePct(20) && !me->IsNonMeleeSpellCasted(false))
-                    {
+                if (!Enraged) {
+                    if (!HealthAbovePct(20)
+                            && !me->IsNonMeleeSpellCasted(false)) {
                         DoCast(me, SPELL_ENRAGE);
                         Enraged = true;
                     }
                 }
 
                 //After 10 minutes hard enrage
-                if (!EnragedHard)
-                {
-                    if (EnrageHard_Timer <= diff)
-                    {
+                if (!EnragedHard) {
+                    if (EnrageHard_Timer <= diff) {
                         DoCast(me, SPELL_ENRAGEHARD);
                         EnragedHard = true;
-                    } else EnrageHard_Timer -= diff;
+                    } else
+                        EnrageHard_Timer -= diff;
                 }
 
                 DoMeleeAttackIfReady();
@@ -179,19 +179,20 @@ public:
     };
 };
 
-class mob_sartura_royal_guard : public CreatureScript
-{
+class mob_sartura_royal_guard: public CreatureScript {
 public:
-    mob_sartura_royal_guard() : CreatureScript("mob_sartura_royal_guard") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_sartura_royal_guardAI (creature);
+    mob_sartura_royal_guard() :
+            CreatureScript("mob_sartura_royal_guard") {
     }
 
-    struct mob_sartura_royal_guardAI : public ScriptedAI
-    {
-        mob_sartura_royal_guardAI(Creature* creature) : ScriptedAI(creature) {}
+    CreatureAI* GetAI(Creature* pCreature) const {
+        return new mob_sartura_royal_guardAI(pCreature);
+    }
+
+    struct mob_sartura_royal_guardAI: public ScriptedAI {
+        mob_sartura_royal_guardAI(Creature *c) :
+                ScriptedAI(c) {
+        }
 
         uint32 WhirlWind_Timer;
         uint32 WhirlWindRandom_Timer;
@@ -203,12 +204,11 @@ public:
         bool WhirlWind;
         bool AggroReset;
 
-        void Reset()
-        {
+        void Reset() {
             WhirlWind_Timer = 30000;
-            WhirlWindRandom_Timer = urand(3000, 7000);
+            WhirlWindRandom_Timer = 3000 + rand() % 4000;
             WhirlWindEnd_Timer = 15000;
-            AggroReset_Timer = urand(45000, 55000);
+            AggroReset_Timer = 45000 + rand() % 10000;
             AggroResetEnd_Timer = 5000;
             KnockBack_Timer = 10000;
 
@@ -216,76 +216,71 @@ public:
             AggroReset = false;
         }
 
-        void EnterCombat(Unit* /*who*/)
-        {
+        void EnterCombat(Unit * /*who*/) {
         }
 
-        void UpdateAI(const uint32 diff)
-        {
+        void UpdateAI(const uint32 diff) {
             //Return since we have no target
             if (!UpdateVictim())
                 return;
 
-            if (!WhirlWind && WhirlWind_Timer <= diff)
-            {
+            if (!WhirlWind && WhirlWind_Timer <= diff) {
                 DoCast(me, SPELL_WHIRLWINDADD);
                 WhirlWind = true;
-                WhirlWind_Timer = urand(25000, 40000);
+                WhirlWind_Timer = 25000 + rand() % 15000;
                 WhirlWindEnd_Timer = 15000;
-            } else WhirlWind_Timer -= diff;
+            } else
+                WhirlWind_Timer -= diff;
 
-            if (WhirlWind)
-            {
-                if (WhirlWindRandom_Timer <= diff)
-                {
+            if (WhirlWind) {
+                if (WhirlWindRandom_Timer <= diff) {
                     //Attack random Gamers
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
-                    {
-                        me->AddThreat(target, 1.0f);
-                        me->TauntApply(target);
-                        AttackStart(target);
-                    }
+                    Unit *pTarget = NULL;
+                    pTarget = SelectUnit(SELECT_TARGET_RANDOM, 1);
+                    if (pTarget)
+                        me->AddThreat(pTarget, 1.0f);
+                    me->TauntApply(pTarget);
+                    AttackStart(pTarget);
 
-                    WhirlWindRandom_Timer = urand(3000, 7000);
-                } else WhirlWindRandom_Timer -= diff;
+                    WhirlWindRandom_Timer = 3000 + rand() % 4000;
+                } else
+                    WhirlWindRandom_Timer -= diff;
 
-                if (WhirlWindEnd_Timer <= diff)
-                {
+                if (WhirlWindEnd_Timer <= diff) {
                     WhirlWind = false;
-                } else WhirlWindEnd_Timer -= diff;
+                } else
+                    WhirlWindEnd_Timer -= diff;
             }
 
-            if (!WhirlWind)
-            {
-                if (AggroReset_Timer <= diff)
-                {
+            if (!WhirlWind) {
+                if (AggroReset_Timer <= diff) {
                     //Attack random Gamers
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100.0f, true))
-                    {
-                        me->AddThreat(target, 1.0f);
-                        me->TauntApply(target);
-                        AttackStart(target);
-                    }
+                    Unit *pTarget = NULL;
+                    pTarget = SelectUnit(SELECT_TARGET_RANDOM, 1);
+                    if (pTarget)
+                        me->AddThreat(pTarget, 1.0f);
+                    me->TauntApply(pTarget);
+                    AttackStart(pTarget);
 
                     AggroReset = true;
-                    AggroReset_Timer = urand(2000, 5000);
-                } else AggroReset_Timer -= diff;
+                    AggroReset_Timer = 2000 + rand() % 3000;
+                } else
+                    AggroReset_Timer -= diff;
 
-                if (KnockBack_Timer <= diff)
-                {
+                if (KnockBack_Timer <= diff) {
                     DoCast(me, SPELL_WHIRLWINDADD);
-                    KnockBack_Timer = urand(10000, 20000);
-                } else KnockBack_Timer -= diff;
+                    KnockBack_Timer = 10000 + rand() % 10000;
+                } else
+                    KnockBack_Timer -= diff;
             }
 
-            if (AggroReset)
-            {
-                if (AggroResetEnd_Timer <= diff)
-                {
+            if (AggroReset) {
+                if (AggroResetEnd_Timer <= diff) {
                     AggroReset = false;
                     AggroResetEnd_Timer = 5000;
-                    AggroReset_Timer = urand(30000, 40000);
-                } else AggroResetEnd_Timer -= diff;
+                    AggroReset_Timer = 30000 + rand() % 10000;
+                } else
+                    AggroResetEnd_Timer -= diff;
             }
 
             DoMeleeAttackIfReady();
@@ -293,8 +288,7 @@ public:
     };
 };
 
-void AddSC_boss_sartura()
-{
+void AddSC_boss_sartura() {
     new boss_sartura();
     new mob_sartura_royal_guard();
 }

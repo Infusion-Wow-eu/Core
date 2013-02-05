@@ -211,16 +211,13 @@ void _lf_pinbox_put_pins(LF_PINS *pins)
   LF_PINBOX *pinbox= pins->pinbox;
   uint32 top_ver, nr;
   nr= pins->link;
-
-#ifndef DBUG_OFF
+#ifdef MY_LF_EXTRA_DEBUG
   {
-    /* This thread should not hold any pin. */
     int i;
     for (i= 0; i < LF_PINBOX_PINS; i++)
       DBUG_ASSERT(pins->pin[i] == 0);
   }
-#endif /* DBUG_OFF */
-
+#endif
   /*
     XXX this will deadlock if other threads will wait for
     the caller to do something after _lf_pinbox_put_pins(),
@@ -535,4 +532,3 @@ uint lf_alloc_pool_count(LF_ALLOCATOR *allocator)
     /* no op */;
   return i;
 }
-

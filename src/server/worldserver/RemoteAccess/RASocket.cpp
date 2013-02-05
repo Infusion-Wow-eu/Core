@@ -1,29 +1,34 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /** \file
-    \ingroup SkyFire Daemon
-*/
+ \ingroup Trinityd
+ */
 
 #include "Common.h"
-#include "Config.h"
-#include "DatabaseEnv.h"
+#include "Configuration/Config.h"
+#include "Database/DatabaseEnv.h"
 #include "AccountMgr.h"
 #include "Log.h"
 #include "RASocket.h"
@@ -31,16 +36,16 @@
 #include "World.h"
 #include "SHA1.h"
 
-RASocket::RASocket()
+RASocket::RASocket ()
 {
-    iMinLevel = ConfigMgr::GetIntDefault("RA.MinLevel", 3);
+    iMinLevel = sConfig->GetIntDefault("RA.MinLevel", 3);
 }
 
-RASocket::~RASocket()
+RASocket::~RASocket ()
 {
 }
 
-int RASocket::open(void *)
+int RASocket::open (void *)
 {
     ACE_INET_Addr remote_addr;
 
@@ -55,7 +60,7 @@ int RASocket::open(void *)
     return activate();
 }
 
-int RASocket::handle_close(ACE_HANDLE, ACE_Reactor_Mask)
+int RASocket::handle_close (ACE_HANDLE, ACE_Reactor_Mask)
 {
     sLog->outRemote("Closing connection");
     peer().close_reader();
@@ -64,12 +69,12 @@ int RASocket::handle_close(ACE_HANDLE, ACE_Reactor_Mask)
     return 0;
 }
 
-int RASocket::send(const std::string& line)
+int RASocket::send (const std::string& line)
 {
     return size_t(peer().send(line.c_str(), line.length())) == line.length() ? 0 : -1;
 }
 
-int RASocket::recv_line(ACE_Message_Block& buffer)
+int RASocket::recv_line (ACE_Message_Block& buffer)
 {
     char byte;
     for (;;)
@@ -105,21 +110,13 @@ int RASocket::recv_line(ACE_Message_Block& buffer)
     return 0;
 }
 
-int RASocket::recv_line(std::string& out_line)
+int RASocket::recv_line (std::string& out_line)
 {
     char buf[4096];
 
-    ACE_Data_Block db(sizeof (buf),
-            ACE_Message_Block::MB_DATA,
-            buf,
-            0,
-            0,
-            ACE_Message_Block::DONT_DELETE,
-            0);
+    ACE_Data_Block db(sizeof(buf), ACE_Message_Block::MB_DATA, buf, 0, 0, ACE_Message_Block::DONT_DELETE, 0);
 
-    ACE_Message_Block message_block(&db,
-            ACE_Message_Block::DONT_DELETE,
-            0);
+    ACE_Message_Block message_block(&db, ACE_Message_Block::DONT_DELETE, 0);
 
     if (recv_line(message_block) == -1)
     {
@@ -132,7 +129,7 @@ int RASocket::recv_line(std::string& out_line)
     return 0;
 }
 
-int RASocket::process_command(const std::string& command)
+int RASocket::process_command (const std::string& command)
 {
     if (command.length() == 0)
         return 0;
@@ -140,7 +137,8 @@ int RASocket::process_command(const std::string& command)
     sLog->outRemote("Got command: %s", command.c_str());
 
     // handle quit, exit and logout commands to terminate connection
-    if (command == "quit" || command == "exit" || command == "logout") {
+    if (command == "quit" || command == "exit" || command == "logout")
+    {
         (void) send("Bye\r\n");
         return -1;
     }
@@ -173,15 +171,14 @@ int RASocket::process_command(const std::string& command)
     return 0;
 }
 
-int RASocket::check_access_level(const std::string& user)
+int RASocket::check_access_level (const std::string& user)
 {
-    std::string safeUser = user;
+    std::string safe_user = user;
 
-    AccountMgr::normalizeString(safeUser);
+    AccountMgr::normalizeString(safe_user);
+    LoginDatabase.EscapeString(safe_user);
 
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_ACCESS);
-    stmt->setString(0, safeUser);
-    PreparedQueryResult result = LoginDatabase.Query(stmt);
+    QueryResult result = LoginDatabase.PQuery("SELECT a.id, aa.gmlevel, aa.RealmID FROM account a LEFT JOIN account_access aa ON (a.id = aa.id) WHERE a.username = '%s'", safe_user.c_str());
 
     if (!result)
     {
@@ -189,9 +186,9 @@ int RASocket::check_access_level(const std::string& user)
         return -1;
     }
 
-    Field* fields = result->Fetch();
+    Field *fields = result->Fetch();
 
-    if (fields[1].GetUInt8() < iMinLevel)
+    if (fields[1].GetUInt32() < iMinLevel)
     {
         sLog->outRemote("User %s has no privilege to login", user.c_str());
         return -1;
@@ -205,24 +202,21 @@ int RASocket::check_access_level(const std::string& user)
     return 0;
 }
 
-int RASocket::check_password(const std::string& user, const std::string& pass)
+int RASocket::check_password (const std::string& user, const std::string& pass)
 {
     std::string safe_user = user;
     AccountMgr::normalizeString(safe_user);
+    LoginDatabase.EscapeString(safe_user);
 
     std::string safe_pass = pass;
     AccountMgr::normalizeString(safe_pass);
+    LoginDatabase.EscapeString(safe_pass);
 
-    std::string hash = AccountMgr::CalculateShaPassHash(safe_user, safe_pass);
+    std::string hash = sAccountMgr->CalculateShaPassHash(safe_user, safe_pass);
 
-    PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_CHECK_PASSWORD_BY_NAME);
+    QueryResult check = LoginDatabase.PQuery("SELECT 1 FROM account WHERE username = '%s' AND sha_pass_hash = '%s'", safe_user.c_str(), hash.c_str());
 
-    stmt->setString(0, safe_user);
-    stmt->setString(1, hash);
-
-    PreparedQueryResult result = LoginDatabase.Query(stmt);
-
-    if (!result)
+    if (!check)
     {
         sLog->outRemote("Wrong password for user: %s", user.c_str());
         return -1;
@@ -231,7 +225,7 @@ int RASocket::check_password(const std::string& user, const std::string& pass)
     return 0;
 }
 
-int RASocket::authenticate()
+int RASocket::authenticate ()
 {
     if (send(std::string("Username: ")) == -1)
         return -1;
@@ -260,28 +254,19 @@ int RASocket::authenticate()
     return 0;
 }
 
-int RASocket::subnegotiate()
+int RASocket::subnegotiate ()
 {
     char buf[1024];
 
-    ACE_Data_Block db(sizeof (buf),
-        ACE_Message_Block::MB_DATA,
-        buf,
-        0,
-        0,
-        ACE_Message_Block::DONT_DELETE,
-        0);
+    ACE_Data_Block db(sizeof(buf), ACE_Message_Block::MB_DATA, buf, 0, 0, ACE_Message_Block::DONT_DELETE, 0);
 
-    ACE_Message_Block message_block(&db,
-        ACE_Message_Block::DONT_DELETE,
-        0);
+    ACE_Message_Block message_block(&db, ACE_Message_Block::DONT_DELETE, 0);
 
     const size_t recv_size = message_block.space();
 
     // Wait a maximum of 1000ms for negotiation packet - not all telnet clients may send it
     ACE_Time_Value waitTime = ACE_Time_Value(1);
-    const ssize_t n = peer().recv(message_block.wr_ptr(),
-        recv_size, &waitTime);
+    const ssize_t n = peer().recv(message_block.wr_ptr(), recv_size, &waitTime);
 
     if (n <= 0)
         return int(n);
@@ -294,30 +279,30 @@ int RASocket::subnegotiate()
 
     buf[n] = '\0';
 
-    #ifdef _DEBUG
+#ifdef _DEBUG
     for (uint8 i = 0; i < n; )
     {
         uint8 iac = buf[i];
-        if (iac == 0xFF)   // "Interpret as Command" (IAC)
+        if (iac == 0xFF)          // "Interpret as Command" (IAC)
         {
             uint8 command = buf[++i];
             std::stringstream ss;
             switch (command)
             {
-                case 0xFB:        // WILL
-                    ss << "WILL ";
-                    break;
-                case 0xFC:        // WON'T
-                    ss << "WON'T ";
-                    break;
-                case 0xFD:        // DO
-                    ss << "DO ";
-                    break;
-                case 0xFE:        // DON'T
-                    ss << "DON'T ";
-                    break;
+                case 0xFB:          // WILL
+                ss << "WILL ";
+                break;
+                case 0xFC:// WON'T
+                ss << "WON'T ";
+                break;
+                case 0xFD:// DO
+                ss << "DO ";
+                break;
+                case 0xFE:// DON'T
+                ss << "DON'T ";
+                break;
                 default:
-                    return -1;      // not allowed
+                return -1;// not allowed
             }
 
             uint8 param = buf[++i];
@@ -326,14 +311,15 @@ int RASocket::subnegotiate()
         }
         ++i;
     }
-    #endif
+#endif
 
     //! Just send back end of subnegotiation packet
-    uint8 const reply[2] = {0xFF, 0xF0};
+    uint8 const reply[2] =
+    { 0xFF, 0xF0 };
     return peer().send(reply, 2);
 }
 
-int RASocket::svc(void)
+int RASocket::svc (void)
 {
     //! Subnegotiation may differ per client - do not react on it
     subnegotiate();
@@ -354,7 +340,7 @@ int RASocket::svc(void)
     for (;;)
     {
         // show prompt
-        const char* tc_prompt = "SF> ";
+        const char* tc_prompt = "TC> ";
         if (size_t(peer().send(tc_prompt, strlen(tc_prompt))) != strlen(tc_prompt))
             return -1;
 
@@ -370,7 +356,7 @@ int RASocket::svc(void)
     return 0;
 }
 
-void RASocket::zprint(void* callbackArg, const char * szText)
+void RASocket::zprint (void* callbackArg, const char * szText)
 {
     if (!szText || !callbackArg)
         return;
@@ -388,7 +374,7 @@ void RASocket::zprint(void* callbackArg, const char * szText)
     }
 }
 
-void RASocket::commandFinished(void* callbackArg, bool /*success*/)
+void RASocket::commandFinished (void* callbackArg, bool /*success*/)
 {
     if (!callbackArg)
         return;

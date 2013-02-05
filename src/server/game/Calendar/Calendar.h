@@ -1,7 +1,10 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ *
+ * Copyright (C) 2011- 2013 ArkCORE2 <http://www.arkania.net/>
+ * Copyright (C) 2010- 2013 Project SkyFire <http://www.projectskyfire.org/> 
+ *
+ * Copyright (C) 2008- 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005- 2013 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,8 +20,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRINITY_CALENDAR_H
-#define TRINITY_CALENDAR_H
+ 
+#ifndef ARKCORE_CALENDAR_H
+#define ARKCORE_CALENDAR_H
 
 #include "Errors.h"
 #include "SharedDefines.h"

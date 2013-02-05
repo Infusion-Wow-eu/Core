@@ -15,51 +15,49 @@
 #define __STORMCOMMON_H__
 
 //-----------------------------------------------------------------------------
-// Compression support
+// Make sure that we include the compression library headers,
+// when a source needs the functions
 
-// Include functions from Pkware Data Compression Library
-#include "pklib/pklib.h"
+#ifdef __INCLUDE_COMPRESSION__
 
-// Include functions from Huffmann compression
-#include "huffman/huff.h"
+  #include "pklib/pklib.h"          // Include functions from Pkware Data Compression Library
 
-// Include functions from IMA ADPCM compression
-#include "adpcm/adpcm.h"
+  #include "huffman/huff.h"         // Include functions from Huffmann compression
 
-// Include functions from SPARSE compression
-#include "sparse/sparse.h"
+  #include "adpcm/adpcm.h"          // Include functions from IMA ADPCM compression
 
-// Include functions from LZMA compression
-#include "lzma/C/LzmaEnc.h"
-#include "lzma/C/LzmaDec.h"
+  #include "sparse/sparse.h"        // Include functions from SPARSE compression
 
-// Include functions from zlib
-#ifndef __SYS_ZLIB
-  #include "zlib/zlib.h"
-#else
-  #include <zlib.h>
-#endif
+  #include "lzma/C/LzmaEnc.h"       // Include functions from LZMA compression
+  #include "lzma/C/LzmaDec.h"
 
-// Include functions from bzlib
-#ifndef __SYS_BZLIB
-  #include "bzip2/bzlib.h"
-#else
-  #include <bzlib.h>
+  #ifndef __SYS_ZLIB
+    #include "zlib/zlib.h"          // Include functions from zlib
+  #else
+    #include <zlib.h>               // If zlib is available on system, use this instead
+  #endif
+
+  #ifndef __SYS_BZLIB
+    #include "bzip2/bzlib.h"        // Include functions from bzlib
+  #else
+    #include <bzlib.h>              // If bzlib is available on system, use this instead
+  #endif
+
 #endif
 
 //-----------------------------------------------------------------------------
-// Cryptography support
+// Make sure that we include the cryptography headers,
+// when a source needs the functions
 
-// Headers from LibTomCrypt
+#ifdef __INCLUDE_CRYPTOGRAPHY__
 #include "libtomcrypt/src/headers/tomcrypt.h"
-
-// For HashStringJenkins
 #include "jenkins/lookup.h"
+#endif
 
 //-----------------------------------------------------------------------------
 // StormLib private defines
 
-#define ID_MPQ_FILE            0x46494c45     // Used internally for checking TMPQFile ('FILE')
+#define ID_MPQ_FILE              0x46494c45 // Used internally for checking TMPQFile ('FILE')
 
 #define MPQ_WEAK_SIGNATURE_SIZE        64
 #define MPQ_STRONG_SIGNATURE_SIZE     256 
@@ -73,64 +71,25 @@
 #define MAKE_OFFSET64(hi, lo)      (((ULONGLONG)hi << 32) | lo)
 
 //-----------------------------------------------------------------------------
-// Memory management
-//
-// We use our own macros for allocating/freeing memory. If you want
-// to redefine them, please keep the following rules
-//
-//  - The memory allocation must return NULL if not enough memory
-//    (i.e not to throw exception)
-//  - It is not necessary to fill the allocated buffer with zeros
-//  - Memory freeing function doesn't have to test the pointer to NULL.
-//
-
-#if defined(_MSC_VER) && defined(_DEBUG)
-__inline void * DebugMalloc(char * /* szFile */, int /* nLine */, size_t nSize)
-{
-//  return new BYTE[nSize];
-    return HeapAlloc(GetProcessHeap(), 0, nSize);
-}
-
-__inline void DebugFree(void * ptr)
-{
-//  delete [] ptr;
-    HeapFree(GetProcessHeap(), 0, ptr);
-}
-
-#define STORM_ALLOC(type, nitems) (type *)DebugMalloc(__FILE__, __LINE__, (nitems) * sizeof(type))
-#define STORM_FREE(ptr)           DebugFree(ptr)
-#else
-
-#define STORM_ALLOC(type, nitems)   (type *)malloc((nitems) * sizeof(type))
-#define STORM_FREE(ptr) free(ptr)
-
-#endif
+// StormLib private structures
 
 //-----------------------------------------------------------------------------
 // StormLib internal global variables
 
-extern LCID lcFileLocale;                       // Preferred file locale
+extern LCID lcFileLocale;                   // Preferred file locale
 
 //-----------------------------------------------------------------------------
 // Encryption and decryption functions
 
-#define MPQ_HASH_TABLE_INDEX    0x000
-#define MPQ_HASH_NAME_A         0x100
-#define MPQ_HASH_NAME_B         0x200
-#define MPQ_HASH_FILE_KEY       0x300
+#define MPQ_KEY_HASH_TABLE  0xC3AF3770      // Obtained by HashString("(hash table)", MPQ_HASH_FILE_KEY)
+#define MPQ_KEY_BLOCK_TABLE 0xEC83B3A3      // Obtained by HashString("(block table)", MPQ_HASH_FILE_KEY)
 
-DWORD HashString(const char * szFileName, DWORD dwHashType);
-
-void  InitializeMpqCryptography();
-
-DWORD GetHashTableSizeForFileCount(DWORD dwFileCount);
+void InitializeMpqCryptography();
 
 bool IsPseudoFileName(const char * szFileName, LPDWORD pdwFileIndex);
 ULONGLONG HashStringJenkins(const char * szFileName);
 
-int ConvertMpqHeaderToFormat4(TMPQArchive * ha, ULONGLONG FileSize, DWORD dwFlags);
-
-DWORD GetDefaultSpecialFileFlags(TMPQArchive * ha, DWORD dwFileSize);
+void ConvertMpqHeaderToFormat4(TMPQArchive * ha, ULONGLONG FileSize, DWORD dwFlags);
 
 void  EncryptMpqBlock(void * pvFileBlock, DWORD dwLength, DWORD dwKey);
 void  DecryptMpqBlock(void * pvFileBlock, DWORD dwLength, DWORD dwKey);
@@ -138,10 +97,6 @@ void  DecryptMpqBlock(void * pvFileBlock, DWORD dwLength, DWORD dwKey);
 DWORD DetectFileKeyBySectorSize(LPDWORD SectorOffsets, DWORD decrypted);
 DWORD DetectFileKeyByContent(void * pvFileContent, DWORD dwFileSize);
 DWORD DecryptFileKey(const char * szFileName, ULONGLONG MpqPos, DWORD dwFileSize, DWORD dwFlags);
-
-bool IsValidMD5(LPBYTE pbMd5);
-bool VerifyDataBlockHash(void * pvDataBlock, DWORD cbDataBlock, LPBYTE expected_md5);
-void CalculateDataBlockHash(void * pvDataBlock, DWORD cbDataBlock, LPBYTE md5_hash);
 
 //-----------------------------------------------------------------------------
 // Handle validation functions
@@ -154,24 +109,16 @@ bool IsValidFileHandle(TMPQFile * hf);
 
 TMPQHash * GetFirstHashEntry(TMPQArchive * ha, const char * szFileName);
 TMPQHash * GetNextHashEntry(TMPQArchive * ha, TMPQHash * pFirstHash, TMPQHash * pPrevHash);
-DWORD AllocateHashEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
-DWORD AllocateHetEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
+TMPQHash * AllocateHashEntry(TMPQArchive * ha, const char * szFileName, LCID lcLocale);
 
-void FindFreeMpqSpace(TMPQArchive * ha, ULONGLONG * pFreeSpacePos);
+void FindFreeMpqSpace(TMPQArchive * ha, ULONGLONG * pMpqPos);
 
-// Functions that loads and verifies MPQ data bitmap
-int  LoadMpqDataBitmap(TMPQArchive * ha, ULONGLONG FileSize, bool * pbFileIsComplete);
-
-// Functions that load the HET and BET tables
-int  CreateHashTable(TMPQArchive * ha, DWORD dwHashTableSize);
-int  LoadAnyHashTable(TMPQArchive * ha);
+// Functions that load the HET abd BET tables
+int  LoadHashTable(TMPQArchive * ha);
 int  BuildFileTable(TMPQArchive * ha, ULONGLONG FileSize);
+int  LoadHetAndBetTable(TMPQArchive * ha);
 int  SaveMPQTables(TMPQArchive * ha);
-
-TMPQHetTable * CreateHetTable(DWORD dwMaxFileCount, DWORD dwHashBitSize, bool bCreateEmpty);
 void FreeHetTable(TMPQHetTable * pHetTable);
-
-TMPQBetTable * CreateBetTable(DWORD dwMaxFileCount);
 void FreeBetTable(TMPQBetTable * pBetTable);
 
 // Functions for finding files in the file table
@@ -180,18 +127,14 @@ TFileEntry * GetFileEntryLocale(TMPQArchive * ha, const char * szFileName, LCID 
 TFileEntry * GetFileEntryExact(TMPQArchive * ha, const char * szFileName, LCID lcLocale);
 TFileEntry * GetFileEntryByIndex(TMPQArchive * ha, DWORD dwIndex);
 
-// Allocates file name in the file entry
-void AllocateFileName(TFileEntry * pFileEntry, const char * szFileName);
-
 // Allocates new file entry in the MPQ tables. Reuses existing, if possible
 TFileEntry * FindFreeFileEntry(TMPQArchive * ha);
 TFileEntry * AllocateFileEntry(TMPQArchive * ha, const char * szFileName, LCID lcLocale);
-int  RenameFileEntry(TMPQArchive * ha, TFileEntry * pFileEntry, const char * szNewFileName);
-void ClearFileEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
-int  FreeFileEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
+TFileEntry * RenameFile(TMPQArchive * ha, const char * szFileName, const char * szNewFileName);
+void FreeFileEntry(TMPQArchive * ha, TFileEntry * pFileEntry);
 
-// Invalidates entries for (listfile) and (attributes)
-void InvalidateInternalFiles(TMPQArchive * ha);
+// Experimental function for testing new hash&block tables
+void TestNewHashBlockTables(TMPQArchive * ha);
 
 //-----------------------------------------------------------------------------
 // Common functions - MPQ File
@@ -206,11 +149,9 @@ void CalculateRawSectorOffset(ULONGLONG & RawFilePos, TMPQFile * hf, DWORD dwSec
 int  WritePatchInfo(TMPQFile * hf);
 int  WriteSectorOffsets(TMPQFile * hf);
 int  WriteSectorChecksums(TMPQFile * hf);
-int  WriteMemDataMD5(TFileStream * pStream, ULONGLONG RawDataOffs, void * pvRawData, DWORD dwRawDataSize, DWORD dwChunkSize, LPDWORD pcbTotalSize);
-int  WriteMpqDataMD5(TFileStream * pStream, ULONGLONG RawDataOffs, DWORD dwRawDataSize, DWORD dwChunkSize);
 void FreeMPQFile(TMPQFile *& hf);
 
-bool IsIncrementalPatchFile(const void * pvData, DWORD cbData, LPDWORD pdwPatchedFileSize);
+bool IsPatchData(const void * pvData, DWORD cbData, LPDWORD pdwPatchedFileSize);
 int  PatchFileData(TMPQFile * hf);
 
 void FreeMPQArchive(TMPQArchive *& ha);
@@ -219,8 +160,7 @@ void FreeMPQArchive(TMPQArchive *& ha);
 // Utility functions
 
 bool CheckWildCard(const char * szString, const char * szWildCard);
-const char * GetPlainFileNameA(const char * szFileName);
-const TCHAR * GetPlainFileNameT(const TCHAR * szFileName);
+const char * GetPlainFileName(const char * szFileName);
 bool IsInternalMpqFileName(const char * szFileName);
 
 //-----------------------------------------------------------------------------
@@ -257,18 +197,6 @@ int  SAttrFileSaveToMpq(TMPQArchive * ha);
 // Listfile functions
 
 int  SListFileSaveToMpq(TMPQArchive * ha);
-
-//-----------------------------------------------------------------------------
-// Dump data support
-
-#ifdef __STORMLIB_DUMP_DATA__
-void DumpMpqHeader(TMPQHeader * pHeader);
-void DumpHetAndBetTable(TMPQHetTable * pHetTable, TMPQBetTable * pBetTable);
-
-#else
-#define DumpMpqHeader(h)           /* */
-#define DumpHetAndBetTable(h, b)   /* */
-#endif
 
 #endif // __STORMCOMMON_H__
 

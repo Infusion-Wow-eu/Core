@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -56,9 +57,9 @@ public:
 
     struct boss_azgalorAI : public hyjal_trashAI
     {
-        boss_azgalorAI(Creature* creature) : hyjal_trashAI(creature)
+        boss_azgalorAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
         }
@@ -144,14 +145,14 @@ public:
                     go = true;
                     if (instance)
                     {
-                        AddWaypoint(0, 5492.91f,    -2404.61f,    1462.63f);
-                        AddWaypoint(1, 5531.76f,    -2460.87f,    1469.55f);
-                        AddWaypoint(2, 5554.58f,    -2514.66f,    1476.12f);
-                        AddWaypoint(3, 5554.16f,    -2567.23f,    1479.90f);
-                        AddWaypoint(4, 5540.67f,    -2625.99f,    1480.89f);
-                        AddWaypoint(5, 5508.16f,    -2659.2f,    1480.15f);
-                        AddWaypoint(6, 5489.62f,    -2704.05f,    1482.18f);
-                        AddWaypoint(7, 5457.04f,    -2726.26f,    1485.10f);
+                        AddWaypoint(0, 5492.91f,   -2404.61f,   1462.63f);
+                        AddWaypoint(1, 5531.76f,   -2460.87f,   1469.55f);
+                        AddWaypoint(2, 5554.58f,   -2514.66f,   1476.12f);
+                        AddWaypoint(3, 5554.16f,   -2567.23f,   1479.90f);
+                        AddWaypoint(4, 5540.67f,   -2625.99f,   1480.89f);
+                        AddWaypoint(5, 5508.16f,   -2659.2f,   1480.15f);
+                        AddWaypoint(6, 5489.62f,   -2704.05f,   1482.18f);
+                        AddWaypoint(7, 5457.04f,   -2726.26f,   1485.10f);
                         Start(false, true);
                         SetDespawnAtEnd(false);
                     }
@@ -215,9 +216,9 @@ public:
 
     struct mob_lesser_doomguardAI : public hyjal_trashAI
     {
-        mob_lesser_doomguardAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_lesser_doomguardAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             if (instance)
                 AzgalorGUID = instance->GetData64(DATA_AZGALOR);
         }

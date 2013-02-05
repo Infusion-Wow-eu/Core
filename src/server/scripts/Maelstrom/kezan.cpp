@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
+ * Copyright (C) 2010 - 2013 Project SkyFire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -21,15 +23,15 @@
 #include "Player.h"
 #include "Creature.h"
 
-// npc_deffiant_troll
-enum NPC_DeffiantTroll
+// npc_defiant_troll
+enum NPC_DefiantTroll
 {
-    DEFFIANT_KILL_CREDIT               = 34830,
-    SPELL_LIGHTNING_VISUAL             = 45870,
+    DEFFIANT_KILL_CREDIT              = 34830,
+    SPELL_LIGHTNING_VISUAL            = 45870,
     QUEST_GOOD_HELP_IS_HARD_TO_FIND    = 14069,
-    GO_DEPOSIT                         = 195489,
+    GO_DEPOSIT                        = 195488,
 };
-
+ 
 #define SAY_WORK_1 "Oops, break's over."
 #define SAY_WORK_2 "Don't tase me, mon!"
 #define SAY_WORK_3 "I report you to HR!"
@@ -38,42 +40,50 @@ enum NPC_DeffiantTroll
 #define SAY_WORK_6 "Sorry, mon. It won't happen again."
 #define SAY_WORK_7 "What I doin' wrong? Don't I get a lunch and two breaks a day, mon?"
 #define SAY_WORK_8 "Ouch! Dat hurt!"
-
+ 
+//bool work;
+ 
 class npc_defiant_troll : public CreatureScript
 {
     public:
     npc_defiant_troll() : CreatureScript("npc_defiant_troll") { }
-
+ 
     CreatureAI* GetAI(Creature* creature) const
     {
         return new npc_defiant_trollAI(creature);
     }
-
+ 
     struct npc_defiant_trollAI : public ScriptedAI
     {
         npc_defiant_trollAI(Creature* creature) : ScriptedAI(creature) {}
-
+ 
         uint32 rebuffTimer;
+        uint32 auraTimer;
         bool work;
-
+ 
         void Reset ()
         {
             rebuffTimer = 0;
             work = false;
+            auraTimer = 0;
         }
-
-        void MovementInform(uint32 /*type*/, uint32 id)
-        {
-            if (id == 1)
-                work = true;
-        }
-
+ 
+        //void MovementInform(uint32 /*type*/, uint32 id)
+        //{
+        //    if (id == 1)
+        //        work = true;
+        //}
+ 
         void SpellHit(Unit* caster, const SpellEntry* spell)
-        {
+        {                   
+            // Remove Aura from Player
+            caster->RemoveAurasDueToSpell(SPELL_LIGHTNING_VISUAL);
+ 
             if (spell->Id == SPELL_LIGHTNING_VISUAL && caster->GetTypeId() == TYPEID_PLAYER
                 && caster->ToPlayer()->GetQuestStatus(QUEST_GOOD_HELP_IS_HARD_TO_FIND) == QUEST_STATUS_INCOMPLETE && work == false)
             {
                 caster->ToPlayer()->KilledMonsterCredit(DEFFIANT_KILL_CREDIT, me->GetGUID());
+ 
                 switch (urand(0, 7))
                 {
                     case 0:
@@ -102,18 +112,35 @@ class npc_defiant_troll : public CreatureScript
                         break;
                 }
                 me->RemoveAllAuras();
+                // Add Aura to Troll
+                me->AddAura(SPELL_LIGHTNING_VISUAL, me);
+                // set work here so you can't gossip npc while they are walking to ore
+                work = true;
                 if (GameObject* Deposit = me->FindNearestGameObject(GO_DEPOSIT, 20))
                     me->GetMotionMaster()->MovePoint(1, Deposit->GetPositionX()-1, Deposit->GetPositionY(), Deposit->GetPositionZ());
+                // Set timer here so he despawns in 2 minutes, set 2 sec aura timer
+                rebuffTimer = 120000;
+                auraTimer = rebuffTimer - 2000;
+ 
+                //work = true;
             }
         }
-
+ 
         void UpdateAI(const uint32 diff)
-        {
+        {       
             if (work == true)
+            {
                 me->HandleEmoteCommand(467);
-
+                if (rebuffTimer <= auraTimer)
+                    me->RemoveAurasDueToSpell(SPELL_LIGHTNING_VISUAL);
+            }
             if (rebuffTimer <= diff)
             {
+                // If working and timer hits 2 minutes, despawn
+                if (work == true)
+                    {
+                    me->ForcedDespawn();
+                    }
                 switch (urand(0, 2))
                 {
                     case 0:
@@ -126,21 +153,21 @@ class npc_defiant_troll : public CreatureScript
                         me->HandleEmoteCommand(0);
                         break;
                 }
-                rebuffTimer = 120000;                 //Rebuff agian in 2 minutes
+                rebuffTimer = 120000;                //Rebuff again in 2 minutes
             }
             else
                 rebuffTimer -= diff;
-
+ 
             if (!UpdateVictim())
                 return;
-
+ 
             DoMeleeAttackIfReady();
         }
     };
-
+ 
     bool OnGossipHello(Player* player, Creature* creature)
     {
-        if (player->GetQuestStatus(QUEST_GOOD_HELP_IS_HARD_TO_FIND) == QUEST_STATUS_INCOMPLETE)
+        if (player->GetQuestStatus(QUEST_GOOD_HELP_IS_HARD_TO_FIND) == QUEST_STATUS_INCOMPLETE) // && work == false)
         {
             player->CastSpell(creature, SPELL_LIGHTNING_VISUAL, true);
             SpellEntry const* spell = sSpellStore.LookupEntry(SPELL_LIGHTNING_VISUAL);
@@ -164,7 +191,7 @@ public:
 
         void Reset() {}
 
-        void UpdateAI(const uint32 /*diff*/)
+        void UpdateAI(const uint32 diff)
         {
             Unit* target = NULL;
             target = me->SelectNearestTarget(5.0f);
@@ -182,6 +209,6 @@ public:
 
 void AddSC_kezan()
 {
-    new npc_fourth_and_goal_target();
-    new npc_defiant_troll();
+    new npc_fourth_and_goal_target;
+    new npc_defiant_troll;
 }

@@ -98,7 +98,7 @@ int init_queue_ex(QUEUE *queue, uint max_elements, uint offset_to_key,
   if ((ret= init_queue(queue, max_elements, offset_to_key, max_at_top, compare,
                        first_cmp_arg)))
     DBUG_RETURN(ret);
-  
+
   queue->auto_extent= auto_extent;
   DBUG_RETURN(0);
 }
@@ -220,7 +220,7 @@ void queue_insert(register QUEUE *queue, uchar *element)
     0 - OK
     1 - Cannot allocate more memory
     2 - auto_extend is 0, the operation would
-  
+
 */
 
 int queue_insert_safe(register QUEUE *queue, uchar *element)
@@ -232,7 +232,7 @@ int queue_insert_safe(register QUEUE *queue, uchar *element)
     else if (resize_queue(queue, queue->max_elements + queue->auto_extent))
       return 1;
   }
-  
+
   queue_insert(queue, element);
   return 0;
 }
@@ -281,7 +281,7 @@ void _downheap(register QUEUE *queue, uint idx)
 			queue->root[next_index+1]+offset_to_key) *
 	 queue->max_at_top) > 0)
       next_index++;
-    if (first && 
+    if (first &&
         (((queue->compare(queue->first_cmp_arg,
                           queue->root[next_index]+offset_to_key,
                           element+offset_to_key) * queue->max_at_top) >= 0)))
@@ -502,7 +502,7 @@ void perform_insert(QUEUE *queue)
 
   expected_part= 1;
   expected_num= 1;
- 
+
   if (max_ind)
     backward_start= 1 << 21;
 

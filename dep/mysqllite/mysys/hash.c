@@ -49,7 +49,7 @@ static my_hash_value_type calc_hash(const HASH *hash,
 
 /**
   @brief Initialize the hash
-  
+
   @details
 
   Initialize the hash, by defining and giving valid values for
@@ -88,7 +88,7 @@ _my_hash_init(HASH *hash, uint growth_size, CHARSET_INFO *charset,
   hash->free=free_element;
   hash->flags=flags;
   hash->charset=charset;
-  DBUG_RETURN(my_init_dynamic_array_ci(&hash->array, 
+  DBUG_RETURN(my_init_dynamic_array_ci(&hash->array,
                                        sizeof(HASH_LINK), size, growth_size));
 }
 
@@ -209,7 +209,7 @@ uchar* my_hash_search(const HASH *hash, const uchar *key, size_t length)
   return my_hash_first(hash, key, length, &state);
 }
 
-uchar* my_hash_search_using_hash_value(const HASH *hash, 
+uchar* my_hash_search_using_hash_value(const HASH *hash,
                                        my_hash_value_type hash_value,
                                        const uchar *key,
                                        size_t length)
@@ -585,18 +585,18 @@ my_bool my_hash_update(HASH *hash, uchar *record, uchar *old_key,
   size_t idx,empty;
   HASH_LINK org_link,*data,*previous,*pos;
   DBUG_ENTER("my_hash_update");
-  
+
   if (HASH_UNIQUE & hash->flags)
   {
     HASH_SEARCH_STATE state;
     uchar *found, *new_key= (uchar*) my_hash_key(hash, record, &idx, 1);
     if ((found= my_hash_first(hash, new_key, idx, &state)))
     {
-      do 
+      do
       {
         if (found != record)
           DBUG_RETURN(1);		/* Duplicate entry */
-      } 
+      }
       while ((found= my_hash_next(hash, new_key, idx, &state)));
     }
   }

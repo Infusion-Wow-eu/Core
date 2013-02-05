@@ -311,7 +311,7 @@ int safe_mutex_destroy(safe_mutex_t *mp, const char *file, uint line)
     fflush(stderr);
     abort();
   }
-#ifdef __WIN__ 
+#ifdef __WIN__
   pthread_mutex_destroy(&mp->global);
   pthread_mutex_destroy(&mp->mutex);
 #else
@@ -421,8 +421,8 @@ ulong mutex_delay(ulong delayloops)
   for (i = 0; i < delayloops * 50; i++)
     j += i;
 
-  return(j); 
-}	
+  return(j);
+}
 
 #define MY_PTHREAD_FASTMUTEX_SPINS 8
 #define MY_PTHREAD_FASTMUTEX_DELAY 4
@@ -433,11 +433,11 @@ int my_pthread_fastmutex_init(my_pthread_fastmutex_t *mp,
                               const pthread_mutexattr_t *attr)
 {
   if ((cpu_count > 1) && (attr == MY_MUTEX_INIT_FAST))
-    mp->spins= MY_PTHREAD_FASTMUTEX_SPINS; 
+    mp->spins= MY_PTHREAD_FASTMUTEX_SPINS;
   else
     mp->spins= 0;
   mp->rng_state= 1;
-  return pthread_mutex_init(&mp->mutex, attr); 
+  return pthread_mutex_init(&mp->mutex, attr);
 }
 
 /**
@@ -491,5 +491,5 @@ void fastmutex_global_init(void)
   cpu_count= sysconf(_SC_NPROCESSORS_CONF);
 #endif
 }
-  
-#endif /* defined(MY_PTHREAD_FASTMUTEX) && !defined(SAFE_MUTEX) */ 
+
+#endif /* defined(MY_PTHREAD_FASTMUTEX) && !defined(SAFE_MUTEX) */

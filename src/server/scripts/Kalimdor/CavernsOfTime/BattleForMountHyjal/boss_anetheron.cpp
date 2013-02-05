@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -65,9 +66,9 @@ public:
 
     struct boss_anetheronAI : public hyjal_trashAI
     {
-        boss_anetheronAI(Creature* creature) : hyjal_trashAI(creature)
+        boss_anetheronAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
         }
@@ -149,14 +150,14 @@ public:
                     go = true;
                     if (instance)
                     {
-                        AddWaypoint(0, 4896.08f,    -1576.35f,    1333.65f);
-                        AddWaypoint(1, 4898.68f,    -1615.02f,    1329.48f);
-                        AddWaypoint(2, 4907.12f,    -1667.08f,    1321.00f);
-                        AddWaypoint(3, 4963.18f,    -1699.35f,    1340.51f);
-                        AddWaypoint(4, 4989.16f,    -1716.67f,    1335.74f);
-                        AddWaypoint(5, 5026.27f,    -1736.89f,    1323.02f);
-                        AddWaypoint(6, 5037.77f,    -1770.56f,    1324.36f);
-                        AddWaypoint(7, 5067.23f,    -1789.95f,    1321.17f);
+                        AddWaypoint(0, 4896.08f,   -1576.35f,   1333.65f);
+                        AddWaypoint(1, 4898.68f,   -1615.02f,   1329.48f);
+                        AddWaypoint(2, 4907.12f,   -1667.08f,   1321.00f);
+                        AddWaypoint(3, 4963.18f,   -1699.35f,   1340.51f);
+                        AddWaypoint(4, 4989.16f,   -1716.67f,   1335.74f);
+                        AddWaypoint(5, 5026.27f,   -1736.89f,   1323.02f);
+                        AddWaypoint(6, 5037.77f,   -1770.56f,   1324.36f);
+                        AddWaypoint(7, 5067.23f,   -1789.95f,   1321.17f);
                         Start(false, true);
                         SetDespawnAtEnd(false);
                     }
@@ -248,9 +249,9 @@ public:
 
     struct mob_towering_infernalAI : public ScriptedAI
     {
-        mob_towering_infernalAI(Creature* creature) : ScriptedAI(creature)
+        mob_towering_infernalAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             if (instance)
                 AnetheronGUID = instance->GetData64(DATA_ANETHERON);
         }

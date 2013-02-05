@@ -1,136 +1,82 @@
 /*
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef SKYFIRE_UNORDERED_MAP_H
-#define SKYFIRE_UNORDERED_MAP_H
+#ifndef ARKCORE_UNORDERED_MAP_H
+#define ARKCORE_UNORDERED_MAP_H
 
 #include "CompilerDefs.h"
 #include "Define.h"
 
 #if COMPILER == COMPILER_INTEL
-#  include <ext/hash_map>
-#  include <ext/hash_set>
+#include <ext/hash_map>
 #elif COMPILER == COMPILER_GNU && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-#  include <tr1/unordered_map>
-#  include <tr1/unordered_set>
+#include <tr1/unordered_map>
 #elif COMPILER == COMPILER_GNU && __GNUC__ >= 3
-#  include <ext/hash_map>
-#  include <ext/hash_set>
-#elif COMPILER == COMPILER_MICROSOFT && (_MSC_VER > 1500 || _MSC_VER == 1500 && _HAS_TR1)   // VC9.0 SP1 and later
-#  include <unordered_map>
-#  include <unordered_set>
+#include <ext/hash_map>
+#elif COMPILER == COMPILER_MICROSOFT && _MSC_VER >= 1500 && _HAS_TR1    // VC9.0 and later
+#include <unordered_map>
 #else
-#  include <hash_map>
-#  include <hash_set>
+#include <hash_map>
 #endif
 
 #ifdef _STLPORT_VERSION
-#  define UNORDERED_MAP std::hash_map
-#  define UNORDERED_SET std::hash_set
-#  define HASH_NAMESPACE_START namespace std {
-#  define HASH_NAMESPACE_END }
+#define UNORDERED_MAP std::hash_map
 using std::hash_map;
-using std::hash_set;
-#elif COMPILER == COMPILER_MICROSOFT && _MSC_VER >= 1600    // VS100
-#  define UNORDERED_MAP std::unordered_map
-#  define UNORDERED_SET std::unordered_set
-#  define HASH_NAMESPACE_START namespace std {
-#  define HASH_NAMESPACE_END }
 #elif COMPILER == COMPILER_MICROSOFT && _MSC_VER >= 1500 && _HAS_TR1
-#  define UNORDERED_MAP std::tr1::unordered_map
-#  define UNORDERED_SET std::tr1::unordered_set
-#  define HASH_NAMESPACE_START namespace std { namespace tr1 {
-#  define HASH_NAMESPACE_END } }
+#define UNORDERED_MAP std::tr1::unordered_map
 #elif COMPILER == COMPILER_MICROSOFT && _MSC_VER >= 1300
-#  define UNORDERED_MAP stdext::hash_map
-#  define UNORDERED_SET stdext::hash_set
-#  define HASH_NAMESPACE_START namespace stdext {
-#  define HASH_NAMESPACE_END }
+#define UNORDERED_MAP stdext::hash_map
 using stdext::hash_map;
-using stdext::hash_set;
+#elif COMPILER == COMPILER_INTEL
+#define UNORDERED_MAP std::hash_map
+using std::hash_map;
+#elif COMPILER == COMPILER_GNU && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+#define UNORDERED_MAP std::tr1::unordered_map
+#elif COMPILER == COMPILER_GNU && __GNUC__ >= 3
+#define UNORDERED_MAP __gnu_cxx::hash_map
 
-#if !_HAS_TRADITIONAL_STL
-
-// can be not used by some platforms, so provide fake forward
-HASH_NAMESPACE_START
-
-template<class K>
-class hash
+namespace __gnu_cxx
 {
-    public:
-        size_t operator() (K const&);
+	template<> struct hash<unsigned long long>
+	{
+		size_t operator()(const unsigned long long &__x) const {return (size_t)__x;}
+	};
+	template<typename T> struct hash<T *>
+	{
+		size_t operator()(T * const &__x) const {return (size_t)__x;}
+	};
+	template<> struct hash<std::string>
+	{
+		size_t operator()(const std::string &__x) const
+		{
+			return hash<const char *>()(__x.c_str());
+		}
+	};
 };
 
-HASH_NAMESPACE_END
-
-#endif
-
-#elif COMPILER == COMPILER_INTEL
-#  define UNORDERED_MAP std::hash_map
-#  define UNORDERED_SET std::hash_set
-#  define HASH_NAMESPACE_START namespace std {
-#  define HASH_NAMESPACE_END }
-using std::hash_map;
-using std::hash_set;
-#elif COMPILER == COMPILER_GNU && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-#  define UNORDERED_MAP std::tr1::unordered_map
-#  define UNORDERED_SET std::tr1::unordered_set
-#  define HASH_NAMESPACE_START namespace std { namespace tr1 {
-#  define HASH_NAMESPACE_END } }
-#elif COMPILER == COMPILER_GNU && __GNUC__ >= 3
-#  define UNORDERED_MAP __gnu_cxx::hash_map
-#  define UNORDERED_SET __gnu_cxx::hash_set
-#  define HASH_NAMESPACE_START namespace __gnu_cxx {
-#  define HASH_NAMESPACE_END }
-
-HASH_NAMESPACE_START
-
-    template<>
-    class hash<unsigned long long>
-    {
-        public:
-            size_t operator()(const unsigned long long &__x) const { return (size_t)__x; }
-    };
-
-    template<typename T>
-    class hash<T *>
-    {
-        public:
-            size_t operator()(T * const &__x) const { return (size_t)__x; }
-    };
-
-    template<> struct hash<std::string>
-    {
-        size_t operator()(const std::string &__x) const
-        {
-            return hash<const char *>()(__x.c_str());
-        }
-    };
-
-HASH_NAMESPACE_END
-
 #else
-#  define UNORDERED_MAP std::hash_map
-#  define UNORDERED_SET std::hash_set
-#  define HASH_NAMESPACE_START namespace std {
-#  define HASH_NAMESPACE_END }
+#define UNORDERED_MAP std::hash_map
 using std::hash_map;
-using std::hash_set;
 #endif
-
 #endif

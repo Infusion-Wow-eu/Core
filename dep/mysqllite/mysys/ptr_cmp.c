@@ -217,4 +217,3 @@ my_off_t my_get_ptr(uchar *ptr, size_t pack_length)
   }
  return pos;
 }
-

@@ -1,11 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2013 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ * Copyright (C) 2005 - 2011 MaNGOS <http://www.getmangos.org/>
+ *
+ * Copyright (C) 2008 - 2011 TrinityCore <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -94,10 +96,10 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*Sender*/, uint32 action)
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
     {
         player->PlayerTalkClass->ClearMenus();
-        switch (action)
+        switch (uiAction)
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
@@ -269,7 +271,7 @@ public:
                         player->GroupEventHappens(QUEST_PERILOUS_ADVENTURE, me);
                         DoScriptText(SAY_QUEST_COMPLETE, me, player);
                     }
-                    me->SetWalk(false);
+                    me->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
                     break;
                 case 25:
                     DoScriptText(SAY_VICTORY4, me);
@@ -340,7 +342,7 @@ public:
 
     struct npc_mrfloppyAI : public ScriptedAI
     {
-        npc_mrfloppyAI(Creature* creature) : ScriptedAI(creature) {}
+        npc_mrfloppyAI(Creature* c) : ScriptedAI(c) {}
 
         uint64 EmilyGUID;
         uint64 RWORGGUID;
@@ -422,7 +424,7 @@ public:
                 m_gender = uiData;
         }
 
-        void SpellHit(Unit* pCaster, const SpellInfo* pSpell)
+        void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
         {
              if (pSpell->Id == SPELL_OUTHOUSE_GROANS)
             {
@@ -451,7 +453,8 @@ public:
 
 enum etallhornstage
 {
-    OBJECT_HAUNCH                   = 188665
+    OBJECT_HAUNCH                   = 188665,
+    SPELL_GORE                      = 32019
 };
 
 class npc_tallhorn_stag : public CreatureScript
@@ -464,24 +467,38 @@ public:
         npc_tallhorn_stagAI(Creature* creature) : ScriptedAI(creature) {}
 
         uint8 m_uiPhase;
+        uint32 m_uiTimer;
 
         void Reset()
         {
             m_uiPhase = 1;
+            m_uiTimer = 3000;
         }
 
-        void UpdateAI(const uint32 /*uiDiff*/)
+        void UpdateAI(const uint32 uiDiff)
         {
             if (m_uiPhase == 1)
             {
                 if (me->FindNearestGameObject(OBJECT_HAUNCH, 2.0f))
                 {
                     me->SetStandState(UNIT_STAND_STATE_DEAD);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC);
+                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE);
                     me->SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
                 }
                 m_uiPhase = 0;
             }
+
+            if (!UpdateVictim())
+                return;
+
+            if (m_uiTimer <= uiDiff)
+            {
+                DoCastVictim(SPELL_GORE);
+                m_uiTimer = 15000;
+            }
+            else
+                m_uiTimer -= uiDiff;
+
             DoMeleeAttackIfReady();
         }
     };
@@ -578,7 +595,7 @@ public:
 
     struct npc_wounded_skirmisherAI : public ScriptedAI
     {
-        npc_wounded_skirmisherAI(Creature* creature) : ScriptedAI(creature) {}
+        npc_wounded_skirmisherAI(Creature* c) : ScriptedAI(c) {}
 
         uint64 uiPlayerGUID;
 
@@ -596,7 +613,7 @@ public:
                 me->DespawnOrUnsummon(DespawnTimer);
         }
 
-        void SpellHit(Unit* caster, const SpellInfo* spell)
+        void SpellHit(Unit* caster, const SpellEntry* spell)
         {
             if (spell->Id == SPELL_RENEW_SKIRMISHER && caster->GetTypeId() == TYPEID_PLAYER
                 && caster->ToPlayer()->GetQuestStatus(12288) == QUEST_STATUS_INCOMPLETE)
@@ -730,7 +747,7 @@ public:
             uiPlayerGUID = 0;
             uiTimer = 0;
             uiChopTimer = urand(10000, 12500);
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
+            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
             me->SetReactState(REACT_AGGRESSIVE);
         }
 
@@ -785,29 +802,115 @@ public:
             DoMeleeAttackIfReady();
         }
 
-        void SpellHit(Unit* caster, const SpellInfo* spell)
+        void SpellHit(Unit* pCaster, const SpellEntry* pSpell)
         {
-            if (caster && caster->GetTypeId() == TYPEID_PLAYER && spell->Id == SPELL_SMOKE_BOMB)
+            if (pCaster && pCaster->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_SMOKE_BOMB)
             {
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC);
+                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_OOC_NOT_ATTACKABLE);
                 me->SetReactState(REACT_PASSIVE);
                 me->CombatStop(false);
-                uiPlayerGUID = caster->GetGUID();
+                uiPlayerGUID = pCaster->GetGUID();
                 uiRunAwayTimer = 3500;
             }
         }
     };
 };
 
+/*####
+## npc_lake_frog
+####*/
+
+enum eLakeFrog
+{
+    SPELL_WARTS                 = 62581,
+    SPELL_WARTS_B_GONE          = 62574,
+    SPELL_TRANSFORM             = 62550,
+    SPELL_SUMMON_ASHWOOD_BRAND  = 62554,
+    SPELL_FROG_LOVE             = 62537,
+
+    ENTRY_NOT_MAIDEN_FROG       = 33211,
+    ENTRY_MAIDEN_FROG           = 33224,
+};
+
+#define SAY_FREED               "Can it really be? Free after all these years?"
+#define GOSSIP_TEXT_GET_WEAPON  "Glad to help, my lady. I'm told you were once the guardian of a fabled sword. Do you know where I might find it?"
+
+class npc_lake_frog : public CreatureScript
+{
+public:
+    npc_lake_frog() : CreatureScript("npc_lake_frog") { }
+
+    struct npc_lake_frogAI : public ScriptedAI
+    {
+        npc_lake_frogAI(Creature* c) : ScriptedAI(c) { alreadykissed = false;}
+
+        bool alreadykissed;
+
+        void ReceiveEmote(Player* player, uint32 emote)
+        {
+            if (emote == TEXTEMOTE_KISS)
+            {
+                alreadykissed = true;
+
+                if (urand(0, 3) == 0)
+                {
+                    DoCast(me, SPELL_TRANSFORM, true);
+                    me->MonsterSay(SAY_FREED, LANG_UNIVERSAL, player->GetGUID());
+                    me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                }else
+                {
+                    if (!player->HasAura(SPELL_WARTS_B_GONE))
+                    {
+                    //FIXME    me->CastSpell(player, SPELL_WARTS);
+                    }else
+                        player->RemoveAurasDueToSpell(SPELL_WARTS_B_GONE);
+
+                        me->CastSpell(me, SPELL_FROG_LOVE, true);
+                        me->GetMotionMaster()->MoveFollow(player, 1, float(rand_norm()*2*M_PI));
+                }
+
+                me->DespawnOrUnsummon(15000);
+            }
+        }
+    };
+
+    bool OnGossipHello(Player* player, Creature* creature)
+    {
+        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_TEXT_GET_WEAPON , GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+        player->SEND_GOSSIP_MENU(player->GetGossipTextId(creature), creature->GetGUID());
+
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
+    {
+        player->PlayerTalkClass->ClearMenus();
+        player->CLOSE_GOSSIP_MENU();
+
+        if (uiAction == GOSSIP_ACTION_INFO_DEF + 1)
+        {
+            creature->CastSpell(player, SPELL_SUMMON_ASHWOOD_BRAND, true);
+        }
+
+        return true;
+    }
+
+    CreatureAI *GetAI(Creature* creature) const
+    {
+        return new npc_lake_frogAI(creature);
+    }
+};
+
 void AddSC_grizzly_hills()
 {
-    new npc_orsonn_and_kodian();
-    new npc_emily();
-    new npc_mrfloppy();
-    new npc_outhouse_bunny();
-    new npc_tallhorn_stag();
-    new npc_amberpine_woodsman();
-    new npc_wounded_skirmisher();
+    new npc_orsonn_and_kodian;
+    new npc_emily;
+    new npc_mrfloppy;
+    new npc_outhouse_bunny;
+    new npc_tallhorn_stag;
+    new npc_amberpine_woodsman;
+    new npc_wounded_skirmisher;
     new npc_lightning_sentry();
     new npc_venture_co_straggler();
+    new npc_lake_frog();
 }

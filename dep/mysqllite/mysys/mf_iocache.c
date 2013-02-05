@@ -467,7 +467,7 @@ int _my_b_read(register IO_CACHE *info, uchar *Buffer, size_t Count)
   */
   if (info->seek_not_done)
   {
-    if ((mysql_file_seek(info->file, pos_in_file, MY_SEEK_SET, MYF(0)) 
+    if ((mysql_file_seek(info->file, pos_in_file, MY_SEEK_SET, MYF(0))
         != MY_FILEPOS_ERROR))
     {
       /* No error, reset seek_not_done flag. */
@@ -1140,7 +1140,7 @@ static void copy_to_read_buffer(IO_CACHE *write_cache,
 
 /*
   Do sequential read from the SEQ_READ_APPEND cache.
-  
+
   We do this in three stages:
    - first read from info->buffer
    - then if there are still data to read, try the file descriptor
@@ -1402,7 +1402,7 @@ int _my_b_async_read(register IO_CACHE *info, uchar *Buffer, size_t Count)
       info->error=(int) (read_length+left_length);
       return 1;
     }
-    
+
     if (mysql_file_seek(info->file, next_pos_in_file, MY_SEEK_SET, MYF(0))
         == MY_FILEPOS_ERROR)
     {
@@ -1501,7 +1501,7 @@ int _my_b_get(IO_CACHE *info)
   return (int) (uchar) buff;
 }
 
-/* 
+/*
    Write a byte buffer to IO_CACHE and flush to disk
    if IO_CACHE is full.
 
@@ -1514,13 +1514,8 @@ int _my_b_get(IO_CACHE *info)
 int _my_b_write(register IO_CACHE *info, const uchar *Buffer, size_t Count)
 {
   size_t rest_length,length;
-  my_off_t pos_in_file= info->pos_in_file;
 
-  DBUG_EXECUTE_IF("simulate_huge_load_data_file",
-                  {
-                    pos_in_file=(my_off_t)(5000000000ULL);
-                  });
-  if (pos_in_file+info->buffer_length > info->end_of_file)
+  if (info->pos_in_file+info->buffer_length > info->end_of_file)
   {
     my_errno=errno=EFBIG;
     return info->error = -1;
@@ -1631,7 +1626,7 @@ int my_b_safe_write(IO_CACHE *info, const uchar *Buffer, size_t Count)
 {
   /*
     Sasha: We are not writing this with the ? operator to avoid hitting
-    a possible compiler bug. At least gcc 2.95 cannot deal with 
+    a possible compiler bug. At least gcc 2.95 cannot deal with
     several layers of ternary operators that evaluated comma(,) operator
     expressions inside - I do have a test case if somebody wants it
   */

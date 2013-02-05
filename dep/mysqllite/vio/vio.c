@@ -98,7 +98,7 @@ static void vio_init(Vio* vio, enum enum_vio_type type,
     DBUG_VOID_RETURN;
   }
 #endif
-#ifdef HAVE_SMEM 
+#ifdef HAVE_SMEM
   if (type == VIO_TYPE_SHARED_MEMORY)
   {
     vio->viodelete	=vio_delete;
@@ -119,14 +119,14 @@ static void vio_init(Vio* vio, enum enum_vio_type type,
     vio->has_data       =has_no_data;
 
     /* Currently, shared memory is on Windows only, hence the below is ok*/
-    vio->timeout= vio_win32_timeout; 
+    vio->timeout= vio_win32_timeout;
     /* Set default timeout */
     vio->read_timeout_ms= INFINITE;
     vio->write_timeout_ms= INFINITE;
     DBUG_VOID_RETURN;
   }
-#endif   
-#ifdef HAVE_OPENSSL 
+#endif
+#ifdef HAVE_OPENSSL
   if (type == VIO_TYPE_SSL)
   {
     vio->viodelete	=vio_ssl_delete;

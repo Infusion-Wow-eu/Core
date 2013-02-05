@@ -1,24 +1,27 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef SKYFIRE_GAMEOBJECT_H
-#define SKYFIRE_GAMEOBJECT_H
+#ifndef ARKCORECORE_GAMEOBJECT_H
+#define ARKCORECORE_GAMEOBJECT_H
 
 #include "Common.h"
 #include "SharedDefines.h"
@@ -39,21 +42,20 @@ class GameObjectAI;
 #define MAX_GAMEOBJECT_QUEST_ITEMS 6
 
 // from `gameobject_template`
-struct GameObjectTemplate
+struct GameObjectInfo
 {
-    uint32  entry;
-    uint32  type;
-    uint32  displayId;
-    std::string name;
-    std::string IconName;
-    std::string castBarCaption;
-    std::string unk1;
-    uint32  faction;
-    uint32  flags;
-    float   size;
-    uint32  questItems[MAX_GAMEOBJECT_QUEST_ITEMS];
-    uint8   unk2;
-    union                                                   // different GO types have different data field
+    uint32 id;
+    uint32 type;
+    uint32 displayId;
+    char *name;
+    char *IconName;
+    char *castBarCaption;
+    char *unk1;
+    uint32 faction;
+    uint32 flags;
+    float size;
+    uint32 questItems[MAX_GAMEOBJECT_QUEST_ITEMS];
+    union          // different GO types have different data field
     {
         //0 GAMEOBJECT_TYPE_DOOR
         struct
@@ -237,7 +239,6 @@ struct GameObjectTemplate
             uint32 transportPhysics;                        //5
             uint32 mapID;                                   //6
             uint32 worldState1;                             //7
-            uint32 inInstance;                              //8
         } moTransport;
         //16 GAMEOBJECT_TYPE_DUELFLAG - empty
         //17 GAMEOBJECT_TYPE_FISHINGNODE - empty
@@ -401,139 +402,175 @@ struct GameObjectTemplate
         // not use for specific field access (only for output with loop by all filed), also this determinate max union size
         struct
         {
-            uint32 data[MAX_GAMEOBJECT_DATA];
+            uint32 data[32];
         } raw;
     };
-
-    std::string AIName;
+    char const* AIName;
     uint32 ScriptId;
 
     // helpers
-    bool IsDespawnAtAction() const
+    bool IsDespawnAtAction () const
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_CHEST:  return chest.consumable;
-            case GAMEOBJECT_TYPE_GOOBER: return goober.consumable;
-            default: return false;
+        case GAMEOBJECT_TYPE_CHEST:
+            return chest.consumable;
+        case GAMEOBJECT_TYPE_GOOBER:
+            return goober.consumable;
+        default:
+            return false;
         }
     }
 
-    uint32 GetLockId() const
+    uint32 GetLockId () const
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_DOOR:       return door.lockId;
-            case GAMEOBJECT_TYPE_BUTTON:     return button.lockId;
-            case GAMEOBJECT_TYPE_QUESTGIVER: return questgiver.lockId;
-            case GAMEOBJECT_TYPE_CHEST:      return chest.lockId;
-            case GAMEOBJECT_TYPE_TRAP:       return trap.lockId;
-            case GAMEOBJECT_TYPE_GOOBER:     return goober.lockId;
-            case GAMEOBJECT_TYPE_AREADAMAGE: return areadamage.lockId;
-            case GAMEOBJECT_TYPE_CAMERA:     return camera.lockId;
-            case GAMEOBJECT_TYPE_FLAGSTAND:  return flagstand.lockId;
-            case GAMEOBJECT_TYPE_FISHINGHOLE:return fishinghole.lockId;
-            case GAMEOBJECT_TYPE_FLAGDROP:   return flagdrop.lockId;
-            default: return 0;
+        case GAMEOBJECT_TYPE_DOOR:
+            return door.lockId;
+        case GAMEOBJECT_TYPE_BUTTON:
+            return button.lockId;
+        case GAMEOBJECT_TYPE_QUESTGIVER:
+            return questgiver.lockId;
+        case GAMEOBJECT_TYPE_CHEST:
+            return chest.lockId;
+        case GAMEOBJECT_TYPE_TRAP:
+            return trap.lockId;
+        case GAMEOBJECT_TYPE_GOOBER:
+            return goober.lockId;
+        case GAMEOBJECT_TYPE_AREADAMAGE:
+            return areadamage.lockId;
+        case GAMEOBJECT_TYPE_CAMERA:
+            return camera.lockId;
+        case GAMEOBJECT_TYPE_FLAGSTAND:
+            return flagstand.lockId;
+        case GAMEOBJECT_TYPE_FISHINGHOLE:
+            return fishinghole.lockId;
+        case GAMEOBJECT_TYPE_FLAGDROP:
+            return flagdrop.lockId;
+        default:
+            return 0;
         }
     }
 
-    bool GetDespawnPossibility() const                      // despawn at targeting of cast?
+    bool GetDespawnPossibility () const          // despawn at targeting of cast?
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_DOOR:       return door.noDamageImmune;
-            case GAMEOBJECT_TYPE_BUTTON:     return button.noDamageImmune;
-            case GAMEOBJECT_TYPE_QUESTGIVER: return questgiver.noDamageImmune;
-            case GAMEOBJECT_TYPE_GOOBER:     return goober.noDamageImmune;
-            case GAMEOBJECT_TYPE_FLAGSTAND:  return flagstand.noDamageImmune;
-            case GAMEOBJECT_TYPE_FLAGDROP:   return flagdrop.noDamageImmune;
-            default: return true;
+        case GAMEOBJECT_TYPE_DOOR:
+            return door.noDamageImmune;
+        case GAMEOBJECT_TYPE_BUTTON:
+            return button.noDamageImmune;
+        case GAMEOBJECT_TYPE_QUESTGIVER:
+            return questgiver.noDamageImmune;
+        case GAMEOBJECT_TYPE_GOOBER:
+            return goober.noDamageImmune;
+        case GAMEOBJECT_TYPE_FLAGSTAND:
+            return flagstand.noDamageImmune;
+        case GAMEOBJECT_TYPE_FLAGDROP:
+            return flagdrop.noDamageImmune;
+        default:
+            return true;
         }
     }
 
-    uint32 GetCharges() const                               // despawn at uses amount
+    uint32 GetCharges () const          // despawn at uses amount
     {
         switch (type)
         {
-            //case GAMEOBJECT_TYPE_TRAP:        return trap.charges;
-            case GAMEOBJECT_TYPE_GUARDPOST:   return guardpost.charges;
-            case GAMEOBJECT_TYPE_SPELLCASTER: return spellcaster.charges;
-            default: return 0;
+        //case GAMEOBJECT_TYPE_TRAP:        return trap.charges;
+        case GAMEOBJECT_TYPE_GUARDPOST:
+            return guardpost.charges;
+        case GAMEOBJECT_TYPE_SPELLCASTER:
+            return spellcaster.charges;
+        default:
+            return 0;
         }
     }
 
-    uint32 GetLinkedGameObjectEntry() const
+    uint32 GetLinkedGameObjectEntry () const
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_CHEST:       return chest.linkedTrapId;
-            case GAMEOBJECT_TYPE_SPELL_FOCUS: return spellFocus.linkedTrapId;
-            case GAMEOBJECT_TYPE_GOOBER:      return goober.linkedTrapId;
-            default: return 0;
+        case GAMEOBJECT_TYPE_CHEST:
+            return chest.linkedTrapId;
+        case GAMEOBJECT_TYPE_SPELL_FOCUS:
+            return spellFocus.linkedTrapId;
+        case GAMEOBJECT_TYPE_GOOBER:
+            return goober.linkedTrapId;
+        default:
+            return 0;
         }
     }
 
-    uint32 GetAutoCloseTime() const
+    uint32 GetAutoCloseTime () const
     {
         uint32 autoCloseTime = 0;
         switch (type)
         {
-            case GAMEOBJECT_TYPE_DOOR:          autoCloseTime = door.autoCloseTime; break;
-            case GAMEOBJECT_TYPE_BUTTON:        autoCloseTime = button.autoCloseTime; break;
-            case GAMEOBJECT_TYPE_TRAP:          autoCloseTime = trap.autoCloseTime; break;
-            case GAMEOBJECT_TYPE_GOOBER:        autoCloseTime = goober.autoCloseTime; break;
-            case GAMEOBJECT_TYPE_TRANSPORT:     autoCloseTime = transport.autoCloseTime; break;
-            case GAMEOBJECT_TYPE_AREADAMAGE:    autoCloseTime = areadamage.autoCloseTime; break;
-            default: break;
+        case GAMEOBJECT_TYPE_DOOR:
+            autoCloseTime = door.autoCloseTime;
+            break;
+        case GAMEOBJECT_TYPE_BUTTON:
+            autoCloseTime = button.autoCloseTime;
+            break;
+        case GAMEOBJECT_TYPE_TRAP:
+            autoCloseTime = trap.autoCloseTime;
+            break;
+        case GAMEOBJECT_TYPE_GOOBER:
+            autoCloseTime = goober.autoCloseTime;
+            break;
+        case GAMEOBJECT_TYPE_TRANSPORT:
+            autoCloseTime = transport.autoCloseTime;
+            break;
+        case GAMEOBJECT_TYPE_AREADAMAGE:
+            autoCloseTime = areadamage.autoCloseTime;
+            break;
+        default:
+            break;
         }
-        return autoCloseTime / IN_MILLISECONDS;              // prior to 3.0.3, conversion was / 0x10000;
+        return autoCloseTime / IN_MILLISECONDS;          // prior to 3.0.3, conversion was / 0x10000;
     }
 
-    uint32 GetLootId() const
+    uint32 GetLootId () const
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_CHEST:       return chest.lootId;
-            case GAMEOBJECT_TYPE_FISHINGHOLE: return fishinghole.lootId;
-            default: return 0;
+        case GAMEOBJECT_TYPE_CHEST:
+            return chest.lootId;
+        case GAMEOBJECT_TYPE_FISHINGHOLE:
+            return fishinghole.lootId;
+        default:
+            return 0;
         }
     }
-
-    uint32 GetGossipMenuId() const
+    uint32 GetGossipMenuId () const
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_QUESTGIVER:    return questgiver.gossipID;
-            case GAMEOBJECT_TYPE_GOOBER:        return goober.gossipID;
-            default: return 0;
+        case GAMEOBJECT_TYPE_QUESTGIVER:
+            return questgiver.gossipID;
+        case GAMEOBJECT_TYPE_GOOBER:
+            return goober.gossipID;
+        default:
+            return 0;
         }
     }
-
-    uint32 GetEventScriptId() const
+    uint32 GetEventScriptId () const
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_GOOBER:        return goober.eventId;
-            case GAMEOBJECT_TYPE_CHEST:         return chest.eventId;
-            case GAMEOBJECT_TYPE_CAMERA:        return camera.eventID;
-            default: return 0;
-        }
-    }
-
-    uint32 GetCooldown() const                              // Cooldown preventing goober and traps to cast spell
-    {
-        switch (type)
-        {
-            case GAMEOBJECT_TYPE_TRAP:        return trap.cooldown;
-            case GAMEOBJECT_TYPE_GOOBER:      return goober.cooldown;
-            default: return 0;
+        case GAMEOBJECT_TYPE_GOOBER:
+            return goober.eventId;
+        case GAMEOBJECT_TYPE_CHEST:
+            return chest.eventId;
+        case GAMEOBJECT_TYPE_CAMERA:
+            return camera.eventID;
+        default:
+            return 0;
         }
     }
 };
-
-// Benchmarked: Faster than std::map (insert/find)
-typedef UNORDERED_MAP<uint32, GameObjectTemplate> GameObjectTemplateContainer;
 
 class OPvPCapturePoint;
 
@@ -543,8 +580,12 @@ union GameObjectValue
     struct
     {
         OPvPCapturePoint *OPvPObj;
-    } CapturePoint;
+    } capturePoint;
     //33 GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING
+    struct
+    {
+        uint32 health;
+    } building;
     struct
     {
         uint32 Health;
@@ -568,9 +609,10 @@ struct GameObjectLocale
 // client side GO show states
 enum GOState
 {
-    GO_STATE_ACTIVE             = 0,                        // show in world as used and not reset (closed door open)
-    GO_STATE_READY              = 1,                        // show in world as ready (closed door close)
-    GO_STATE_ACTIVE_ALTERNATIVE = 2                         // show in world as used in alt way and not reset (closed door open by cannon fire)
+    GO_STATE_ACTIVE = 0,          // show in world as used and not reset (closed door open)
+    GO_STATE_READY = 1,          // show in world as ready (closed door close)
+    GO_STATE_ACTIVE_ALTERNATIVE = 2
+// show in world as used in alt way and not reset (closed door open by cannon fire)
 };
 
 #define MAX_GO_STATE              3
@@ -578,8 +620,11 @@ enum GOState
 // from `gameobject`
 struct GameObjectData
 {
-    explicit GameObjectData() : dbData(true) {}
-    uint32 id;                                              // entry in gamobject_template
+    explicit GameObjectData () :
+            dbData(true)
+    {
+    }
+    uint32 id;          // entry in gamobject_template
     uint16 mapid;
     uint16 phaseMask;
     float posX;
@@ -590,7 +635,7 @@ struct GameObjectData
     float rotation1;
     float rotation2;
     float rotation3;
-    int32  spawntimesecs;
+    int32 spawntimesecs;
     uint32 animprogress;
     GOState go_state;
     uint8 spawnMask;
@@ -604,10 +649,8 @@ struct GameObjectData
 // For door(open):  [GO_NOT_READY]->GO_READY (open) ->GO_ACTIVATED (close)->GO_JUST_DEACTIVATED->GO_READY(open)  -> ...
 enum LootState
 {
-    GO_NOT_READY = 0,
-    GO_READY,                                               // can be ready but despawned, and then not possible activate until spawn
-    GO_ACTIVATED,
-    GO_JUST_DEACTIVATED
+    GO_NOT_READY = 0, GO_READY,          // can be ready but despawned, and then not possible activate until spawn
+    GO_ACTIVATED, GO_JUST_DEACTIVATED
 };
 
 class Unit;
@@ -615,220 +658,326 @@ class Unit;
 // 5 sec for bobber catch
 #define FISHING_BOBBER_READY_TIME 5
 
-class GameObject : public WorldObject, public GridObject<GameObject>
+class GameObject: public WorldObject, public GridObject<GameObject>
 {
-    public:
-        explicit GameObject();
-        ~GameObject();
+public:
+    explicit GameObject ();
+    ~GameObject ();
 
-        void AddToWorld();
-        void RemoveFromWorld();
-        void CleanupsBeforeDelete(bool finalCleanup = true);
+    void AddToWorld ();
+    void RemoveFromWorld ();
+    void CleanupsBeforeDelete (bool finalCleanup = true);
 
-        bool Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit = 0);
-        void Update(uint32 p_time);
-        static GameObject* GetGameObject(WorldObject& object, uint64 guid);
-        GameObjectTemplate const* GetGOInfo() const { return m_goInfo; }
-        GameObjectData const* GetGOData() const { return m_goData; }
-        GameObjectValue * GetGOValue() const { return m_goValue; }
+    bool Create (uint32 guidlow, uint32 name_id, Map *map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit = 0);
+    void Update (uint32 p_time);
+    static GameObject* GetGameObject (WorldObject& object, uint64 guid);
+    GameObjectInfo const* GetGOInfo () const
+    {
+        return m_goInfo;
+    }
+    GameObjectData const* GetGOData () const
+    {
+        return m_goData;
+    }
+    GameObjectValue * GetGOValue () const
+    {
+        return m_goValue;
+    }
 
-        bool IsTransport() const;
-        bool IsDynTransport() const;
-        bool IsDestructibleBuilding() const;
+    bool IsTransport () const;
+    bool IsDynTransport () const;
 
-        uint32 GetDBTableGUIDLow() const { return _DBTableGuid; }
+    uint32 GetDBTableGUIDLow () const
+    {
+        return m_DBTableGuid;
+    }
 
-        void UpdateRotationFields(float rotation2 = 0.0f, float rotation3 = 0.0f);
+    void UpdateRotationFields (float rotation2 = 0.0f, float rotation3 = 0.0f);
 
-        void Say(int32 textId, uint32 language, uint64 TargetGuid) { MonsterSay(textId, language, TargetGuid); }
-        void Yell(int32 textId, uint32 language, uint64 TargetGuid) { MonsterYell(textId, language, TargetGuid); }
-        void TextEmote(int32 textId, uint64 TargetGuid) { MonsterTextEmote(textId, TargetGuid); }
-        void Whisper(int32 textId, uint64 receiver) { MonsterWhisper(textId, receiver); }
-        void YellToZone(int32 textId, uint32 language, uint64 TargetGuid) { MonsterYellToZone(textId, language, TargetGuid); }
+    void Say (int32 textId, uint32 language, uint64 TargetGuid)
+    {
+        MonsterSay(textId, language, TargetGuid);
+    }
+    void Yell (int32 textId, uint32 language, uint64 TargetGuid)
+    {
+        MonsterYell(textId, language, TargetGuid);
+    }
+    void TextEmote (int32 textId, uint64 TargetGuid)
+    {
+        MonsterTextEmote(textId, TargetGuid);
+    }
+    void Whisper (int32 textId, uint64 receiver)
+    {
+        MonsterWhisper(textId, receiver);
+    }
+    void YellToZone (int32 textId, uint32 language, uint64 TargetGuid)
+    {
+        MonsterYellToZone(textId, language, TargetGuid);
+    }
 
-        // overwrite WorldObject function for proper name localization
-        const char* GetNameForLocaleIdx(LocaleConstant locale_idx) const;
+    // overwrite WorldObject function for proper name localization
+    const char* GetNameForLocaleIdx (LocaleConstant locale_idx) const;
 
-        void SaveToDB();
-        void SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask);
-        bool LoadFromDB(uint32 guid, Map* map) { return LoadGameObjectFromDB(guid, map, false); }
-        bool LoadGameObjectFromDB(uint32 guid, Map* map, bool addToMap = true);
-        void DeleteFromDB();
+    void SaveToDB ();
+    void SaveToDB (uint32 mapid, uint8 spawnMask, uint32 phaseMask);
+    bool LoadFromDB (uint32 guid, Map *map);
+    void DeleteFromDB ();
 
-        void SetOwnerGUID(uint64 owner)
+    void SetOwnerGUID (uint64 owner)
+    {
+        // Owner already found and different than expected owner - remove object from old owner
+        if (owner && GetOwnerGUID() && GetOwnerGUID() != owner)
         {
-            // Owner already found and different than expected owner - remove object from old owner
-            if (owner && GetOwnerGUID() && GetOwnerGUID() != owner)
-            {
-                ASSERT(false);
-            }
-            m_spawnedByDefault = false;                     // all object with owner is despawned after delay
-            SetUInt64Value(OBJECT_FIELD_CREATED_BY, owner);
+            ASSERT(false);
         }
-        uint64 GetOwnerGUID() const { return GetUInt64Value(OBJECT_FIELD_CREATED_BY); }
-        Unit* GetOwner() const;
+        m_spawnedByDefault = false;          // all object with owner is despawned after delay
+        SetUInt64Value(OBJECT_FIELD_CREATED_BY, owner);
+    }
+    uint64 GetOwnerGUID () const
+    {
+        return GetUInt64Value(OBJECT_FIELD_CREATED_BY);
+    }
+    Unit* GetOwner () const;
 
-        void SetSpellId(uint32 id)
-        {
-            m_spawnedByDefault = false;                     // all summoned object is despawned after delay
-            m_spellId = id;
-        }
-        uint32 GetSpellId() const { return m_spellId;}
+    void SetSpellId (uint32 id)
+    {
+        m_spawnedByDefault = false;          // all summoned object is despawned after delay
+        m_spellId = id;
+    }
+    uint32 GetSpellId () const
+    {
+        return m_spellId;
+    }
 
-        time_t GetRespawnTime() const { return _respawnTime; }
-        time_t GetRespawnTimeEx() const
-        {
-            time_t now = time(NULL);
-            if (_respawnTime > now)
-                return _respawnTime;
-            else
-                return now;
-        }
+    time_t GetRespawnTime () const
+    {
+        return m_respawnTime;
+    }
+    time_t GetRespawnTimeEx () const
+    {
+        time_t now = time(NULL);
+        if (m_respawnTime > now)
+            return m_respawnTime;
+        else
+            return now;
+    }
 
-        void SetRespawnTime(int32 respawn)
-        {
-            _respawnTime = respawn > 0 ? time(NULL) + respawn : 0;
-            m_respawnDelayTime = respawn > 0 ? respawn : 0;
-        }
-        void Respawn();
-        bool isSpawned() const
-        {
-            return m_respawnDelayTime == 0 ||
-                (_respawnTime > 0 && !m_spawnedByDefault) ||
-                (_respawnTime == 0 && m_spawnedByDefault);
-        }
-        bool isSpawnedByDefault() const { return m_spawnedByDefault; }
-        void SetSpawnedByDefault(bool b) { m_spawnedByDefault = b; }
-        uint32 GetRespawnDelay() const { return m_respawnDelayTime; }
-        void Refresh();
-        void Delete();
-        void getFishLoot(Loot* loot, Player* loot_owner);
-        GameobjectTypes GetGoType() const { return GameobjectTypes(GetByteValue(GAMEOBJECT_BYTES_1, 1)); }
-        void SetGoType(GameobjectTypes type) { SetByteValue(GAMEOBJECT_BYTES_1, 1, type); }
-        GOState GetGoState() const { return GOState(GetByteValue(GAMEOBJECT_BYTES_1, 0)); }
-        void SetGoState(GOState state) { SetByteValue(GAMEOBJECT_BYTES_1, 0, state); }
-        uint8 GetGoArtKit() const { return GetByteValue(GAMEOBJECT_BYTES_1, 2); }
-        void SetGoArtKit(uint8 artkit);
-        uint8 GetGoAnimProgress() const { return GetByteValue(GAMEOBJECT_BYTES_1, 3); }
-        void SetGoAnimProgress(uint8 animprogress) { SetByteValue(GAMEOBJECT_BYTES_1, 3, animprogress); }
-        static void SetGoArtKit(uint8 artkit, GameObject* go, uint32 lowguid = 0);
+    void SetRespawnTime (int32 respawn)
+    {
+        m_respawnTime = respawn > 0 ? time(NULL) + respawn : 0;
+        m_respawnDelayTime = respawn > 0 ? respawn : 0;
+    }
+    void Respawn ();
+    bool isSpawned () const
+    {
+        return m_respawnDelayTime == 0 || (m_respawnTime > 0 && !m_spawnedByDefault) || (m_respawnTime == 0 && m_spawnedByDefault);
+    }
+    bool isSpawnedByDefault () const
+    {
+        return m_spawnedByDefault;
+    }
+    void SetSpawnedByDefault (bool b)
+    {
+        m_spawnedByDefault = b;
+    }
+    uint32 GetRespawnDelay () const
+    {
+        return m_respawnDelayTime;
+    }
+    void Refresh ();
+    void Delete ();
+    void getFishLoot (Loot *loot, Player* loot_owner);
+    GameobjectTypes GetGoType () const
+    {
+        return GameobjectTypes(GetByteValue(GAMEOBJECT_BYTES_1, 1));
+    }
+    void SetGoType (GameobjectTypes type)
+    {
+        SetByteValue(GAMEOBJECT_BYTES_1, 1, type);
+    }
+    GOState GetGoState () const
+    {
+        return GOState(GetByteValue(GAMEOBJECT_BYTES_1, 0));
+    }
+    void SetGoState (GOState state)
+    {
+        SetByteValue(GAMEOBJECT_BYTES_1, 0, state);
+    }
+    uint8 GetGoArtKit () const
+    {
+        return GetByteValue(GAMEOBJECT_BYTES_1, 2);
+    }
+    void SetGoArtKit (uint8 artkit);
+    uint8 GetGoAnimProgress () const
+    {
+        return GetByteValue(GAMEOBJECT_BYTES_1, 3);
+    }
+    void SetGoAnimProgress (uint8 animprogress)
+    {
+        SetByteValue(GAMEOBJECT_BYTES_1, 3, animprogress);
+    }
+    static void SetGoArtKit (uint8 artkit, GameObject *go, uint32 lowguid = 0);
 
-        void Use(Unit* user);
+    void Use (Unit* user);
 
-        LootState getLootState() const { return m_lootState; }
-        // Note: unit is only used when s = GO_ACTIVATED
-        void SetLootState(LootState s, Unit* unit = NULL);
+    LootState getLootState () const
+    {
+        return m_lootState;
+    }
+    void SetLootState (LootState s)
+    {
+        m_lootState = s;
+    }
 
-        uint16 GetLootMode() { return m_LootMode; }
-        bool HasLootMode(uint16 lootMode) { return m_LootMode & lootMode; }
-        void SetLootMode(uint16 lootMode) { m_LootMode = lootMode; }
-        void AddLootMode(uint16 lootMode) { m_LootMode |= lootMode; }
-        void RemoveLootMode(uint16 lootMode) { m_LootMode &= ~lootMode; }
-        void ResetLootMode() { m_LootMode = LOOT_MODE_DEFAULT; }
+    uint16 GetLootMode ()
+    {
+        return m_LootMode;
+    }
+    bool HasLootMode (uint16 lootMode)
+    {
+        return m_LootMode & lootMode;
+    }
+    void SetLootMode (uint16 lootMode)
+    {
+        m_LootMode = lootMode;
+    }
+    void AddLootMode (uint16 lootMode)
+    {
+        m_LootMode |= lootMode;
+    }
+    void RemoveLootMode (uint16 lootMode)
+    {
+        m_LootMode &= ~lootMode;
+    }
+    void ResetLootMode ()
+    {
+        m_LootMode = LOOT_MODE_DEFAULT;
+    }
 
-        void AddToSkillupList(uint32 PlayerGuidLow) { m_SkillupList.push_back(PlayerGuidLow); }
-        bool IsInSkillupList(uint32 PlayerGuidLow) const
-        {
-            for (std::list<uint32>::const_iterator i = m_SkillupList.begin(); i != m_SkillupList.end(); ++i)
-                if (*i == PlayerGuidLow) return true;
-            return false;
-        }
-        void ClearSkillupList() { m_SkillupList.clear(); }
+    void AddToSkillupList (uint32 PlayerGuidLow)
+    {
+        m_SkillupList.push_back(PlayerGuidLow);
+    }
+    bool IsInSkillupList (uint32 PlayerGuidLow) const
+    {
+        for (std::list<uint32>::const_iterator i = m_SkillupList.begin(); i != m_SkillupList.end(); ++i)
+            if (*i == PlayerGuidLow)
+                return true;
+        return false;
+    }
+    void ClearSkillupList ()
+    {
+        m_SkillupList.clear();
+    }
 
-        void AddUniqueUse(Player* player);
-        void AddUse() { ++m_usetimes; }
+    void AddUniqueUse (Player* player);
+    void AddUse ()
+    {
+        ++m_usetimes;
+    }
 
-        uint32 GetUseCount() const { return m_usetimes; }
-        uint32 GetUniqueUseCount() const { return m_unique_users.size(); }
+    uint32 GetUseCount () const
+    {
+        return m_usetimes;
+    }
+    uint32 GetUniqueUseCount () const
+    {
+        return m_unique_users.size();
+    }
 
-        void SaveRespawnTime();
+    void SaveRespawnTime ();
 
-        Loot        loot;
+    Loot loot;
 
-        uint32 _groupLootTimer;                            // (msecs)timer used for group loot
-        uint32 lootingGroupLowGUID;                         // used to find group which is looting
+    uint32 m_groupLootTimer;          // (msecs)timer used for group loot
+    uint32 lootingGroupLowGUID;          // used to find group which is looting
 
-        bool hasQuest(uint32 quest_id) const;
-        bool hasInvolvedQuest(uint32 quest_id) const;
-        bool ActivateToQuest(Player* target) const;
-        void UseDoorOrButton(uint32 time_to_restore = 0, bool alternative = false, Unit* user = NULL);
-                                                            // 0 = use `gameobject`.`spawntimesecs`
-        void ResetDoorOrButton();
+    bool hasQuest (uint32 quest_id) const;
+    bool hasInvolvedQuest (uint32 quest_id) const;
+    bool ActivateToQuest (Player *pTarget) const;
+    void UseDoorOrButton (uint32 time_to_restore = 0, bool alternative = false);
+    // 0 = use `gameobject`.`spawntimesecs`
+    void ResetDoorOrButton ();
 
-        void TriggeringLinkedGameObject(uint32 trapEntry, Unit* target);
+    void TriggeringLinkedGameObject (uint32 trapEntry, Unit* target);
 
-        bool IsAlwaysVisibleFor(WorldObject const* seer) const;
-        bool IsInvisibleDueToDespawn() const;
+    bool IsInvisibleDueToDespawn () const;
+    bool isAlwaysVisibleFor (WorldObject const* seer) const;
+    bool isVisibleForInState (WorldObject const* seer) const;
 
-        uint8 getLevelForTarget(WorldObject const* target) const
-        {
-            if (Unit* owner = GetOwner())
-                return owner->getLevelForTarget(target);
+    uint8 getLevelForTarget (WorldObject const* target) const
+    {
+        if (Unit* owner = GetOwner())
+            return owner->getLevelForTarget(target);
 
-            return 1;
-        }
+        return 1;
+    }
 
-        GameObject* LookupFishingHoleAround(float range);
+    GameObject* LookupFishingHoleAround (float range);
 
-        void CastSpell(Unit* target, uint32 spell);
-        void SendCustomAnim(uint32 anim);
-        bool IsInRange(float x, float y, float z, float radius) const;
+    void CastSpell (Unit *target, uint32 spell);
+    void SendCustomAnim (uint32 anim);
+    bool IsInRange (float x, float y, float z, float radius) const;
+    void TakenDamage (uint32 damage, Unit* who = NULL);
+    void Rebuild ();
 
-        void ModifyHealth(int32 change, Unit* attackerOrHealer = NULL, uint32 spellId = 0);
-        // sets GameObject type 33 destruction flags and optionally default health for that state
-        void SetDestructibleState(GameObjectDestructibleState state, Player* eventInvoker = NULL, bool setHealth = false);
-        GameObjectDestructibleState GetDestructibleState() const
-        {
-            if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED))
-                return GO_DESTRUCTIBLE_DESTROYED;
-            if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED))
-                return GO_DESTRUCTIBLE_DAMAGED;
-            return GO_DESTRUCTIBLE_INTACT;
-        }
+    void ModifyHealth (int32 change, Unit* attackerOrHealer = NULL, uint32 spellId = 0);
+    // sets GameObject type 33 destruction flags and optionally default health for that state
+    void SetDestructibleState (GameObjectDestructibleState state, Player* eventInvoker = NULL, bool setHealth = false);
+    GameObjectDestructibleState GetDestructibleState () const
+    {
+        if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_DESTROYED))
+            return GO_DESTRUCTIBLE_DESTROYED;
+        if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_DAMAGED))
+            return GO_DESTRUCTIBLE_DAMAGED;
+        return GO_DESTRUCTIBLE_INTACT;
+    }
 
-        void EventInform(uint32 eventId);
+    void EventInform (uint32 eventId);
 
-        uint64 GetRotation() const { return m_rotation; }
-        virtual uint32 GetScriptId() const { return GetGOInfo()->ScriptId; }
-        GameObjectAI* AI() const { return m_AI; }
+    uint64 GetRotation () const
+    {
+        return m_rotation;
+    }
+    virtual uint32 GetScriptId () const
+    {
+        return GetGOInfo()->ScriptId;
+    }
+    GameObjectAI* AI () const
+    {
+        return (GameObjectAI*) m_AI;
+    }
 
-        std::string GetAIName() const;
-    protected:
-        bool AIM_Initialize();
-        uint32      m_spellId;
-        time_t      _respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
-        uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer
-        LootState   m_lootState;
-        bool        m_spawnedByDefault;
-        time_t      m_cooldownTime;                         // used as internal reaction delay time store (not state change reaction).
-                                                            // For traps this: spell casting cooldown, for doors/buttons: reset time.
-        std::list<uint32> m_SkillupList;
+    std::string GetAIName () const;
+protected:
+    bool AIM_Initialize ();
+    uint32 m_spellId;
+    time_t m_respawnTime;          // (secs) time of next respawn (or despawn if GO have owner()),
+    uint32 m_respawnDelayTime;          // (secs) if 0 then current GO state no dependent from timer
+    LootState m_lootState;
+    bool m_spawnedByDefault;
+    time_t m_cooldownTime;          // used as internal reaction delay time store (not state change reaction).
+                                    // For traps this: spell casting cooldown, for doors/buttons: reset time.
+    std::list<uint32> m_SkillupList;
 
-        Player* m_ritualOwner;                              // used for GAMEOBJECT_TYPE_SUMMONING_RITUAL where GO is not summoned (no owner)
-        std::set<uint64> m_unique_users;
-        uint32 m_usetimes;
+    Player* m_ritualOwner;          // used for GAMEOBJECT_TYPE_SUMMONING_RITUAL where GO is not summoned (no owner)
+    std::set<uint32> m_unique_users;
+    uint32 m_usetimes;
 
-        typedef std::map<uint32, uint64> ChairSlotAndUser;
-        ChairSlotAndUser ChairListSlots;
+    typedef std::map<uint32, uint64> ChairSlotAndUser;
+    ChairSlotAndUser ChairListSlots;
 
-        uint32 _DBTableGuid;                               ///< For new or temporary gameobjects is 0 for saved it is lowguid
-        GameObjectTemplate const* m_goInfo;
-        GameObjectData const* m_goData;
-        GameObjectValue * const m_goValue;
+    uint32 m_DBTableGuid;          ///< For new or temporary gameobjects is 0 for saved it is lowguid
+    GameObjectInfo const* m_goInfo;
+    GameObjectData const* m_goData;
+    GameObjectValue * const m_goValue;
 
-        uint64 m_rotation;
+    uint64 m_rotation;
 
-        uint16 m_LootMode;                                  // bitmask, default LOOT_MODE_DEFAULT, determines what loot will be lootable
-    private:
-        void RemoveFromOwner();
-        void SwitchDoorOrButton(bool activate, bool alternative = false);
-
-        //! Object distance/size - overridden from Object::_IsWithinDist. Needs to take in account proper GO size.
-        bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool /*is3D*/) const
-        {
-            //! Following check does check 3d distance
-            return IsInRange(obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ(), dist2compare);
-        }
-        GameObjectAI* m_AI;
+    uint16 m_LootMode;          // bitmask, default LOOT_MODE_DEFAULT, determines what loot will be lootable
+private:
+    void RemoveFromOwner ();
+    void SwitchDoorOrButton (bool activate, bool alternative = false);
+    GameObjectAI* m_AI;
 };
 #endif

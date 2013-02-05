@@ -1,14 +1,3 @@
-# Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
-# Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
-#
-# This file is free software; as a special exception the author gives
-# unlimited permission to copy and/or distribute it, with or without
-# modifications, as long as this notice is preserved.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 # set up output paths for executable binaries (.exe-files, and .dll-files on DLL-capable platforms)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -31,8 +20,11 @@ else()
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
   message(STATUS "MSVC: Enabled large address awareness")
 
-  add_definitions(/arch:SSE2)
-  message(STATUS "MSVC: Enabled SSE2 support")
+  # Test if we need SSE2-support
+  if(USE_SFMT)
+    add_definitions(/arch:SSE2)
+    message(STATUS "MSVC: Enabled SSE2 support")
+  endif()
 endif()
 
 # Set build-directive (used in core to tell which buildtype we used)
@@ -46,18 +38,18 @@ add_definitions(-D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES)
 message(STATUS "MSVC: Overloaded standard names")
 
 # Ignore warnings about older, less secure functions
-add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4355 /wd4244 /wd4985 /wd4267 /wd4619 /wd4820 /wd4986 /wd4514 /wd4710 /wd4668 /wd4365 /wd4005 /wd4640 /wd4242 /wd4711 /wd4738 /wd4625 /wd4626 /wd4061 /wd4100 /wd4265")
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 message(STATUS "MSVC: Disabled NON-SECURE warnings")
 
 #Ignore warnings about POSIX deprecation
 add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 message(STATUS "MSVC: Disabled POSIX warnings")
 
-# disable warnings in Visual Studio 9 and above if not wanted
+# disable warnings in Visual Studio 8 and above if not wanted
 if(NOT WITH_WARNINGS)
-    if(MSVC AND NOT CMAKE_GENERATOR MATCHES "Visual Studio 9")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4996 /wd4355 /wd4244 /wd4985 /wd4267 /wd4619 /wd4820 /wd4986 /wd4514 /wd4710 /wd4668 /wd4365 /wd4005 /wd4640 /wd4242 /wd4711 /wd4738 /wd4625 /wd4626 /wd4061 /wd4100 /wd4265")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996 /wd4355 /wd4244 /wd4985 /wd4267 /wd4619 /wd4820 /wd4986 /wd4514 /wd4710 /wd4668 /wd4365 /wd4005 /wd4640 /wd4242 /wd4711 /wd4738 /wd4625 /wd4626 /wd4061 /wd4100 /wd4265")
-        message(STATUS "MSVC: Disabled generic compiletime warnings")
-    endif()
+  if(MSVC AND NOT CMAKE_GENERATOR MATCHES "Visual Studio 7")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4996 /wd4355 /wd4244 /wd4985 /wd4267 /wd4619")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996 /wd4355 /wd4244 /wd4985 /wd4267 /wd4619")
+    message(STATUS "MSVC: Disabled generic compiletime warnings")
+  endif()
 endif()

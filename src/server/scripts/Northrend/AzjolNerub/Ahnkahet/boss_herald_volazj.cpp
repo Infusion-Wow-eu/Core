@@ -1,10 +1,15 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -70,10 +75,10 @@ public:
     {
         boss_volazjAI(Creature* creature) : ScriptedAI(creature), Summons(me)
         {
-            instance = creature->GetInstanceScript();
+            pInstance = creature->GetInstanceScript();
         }
 
-        InstanceScript* instance;
+        InstanceScript* pInstance;
 
         uint32 uiMindFlayTimer;
         uint32 uiShadowBoltVolleyTimer;
@@ -102,7 +107,7 @@ public:
             }
         }
 
-        void SpellHitTarget(Unit* target, const SpellInfo* spell)
+        void SpellHitTarget(Unit* target, const SpellEntry* spell)
         {
             if (spell->Id == SPELL_INSANITY)
             {
@@ -116,7 +121,7 @@ public:
                     DoCast(me, INSANITY_VISUAL, true);
                     // Unattackable
                     me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                    me->SetControlled(true, UNIT_STATE_STUNNED);
+                    me->SetControlled(true, UNIT_STAT_STUNNED);
                 }
                 // phase mask
                 target->CastSpell(target, SPELL_INSANITY_TARGET+insanityHandled, true);
@@ -156,10 +161,10 @@ public:
             uiShadowBoltVolleyTimer = 5*IN_MILLISECONDS;
             uiShiverTimer = 15*IN_MILLISECONDS;
 
-            if (instance)
+            if (pInstance)
             {
-                instance->SetData(DATA_HERALD_VOLAZJ, NOT_STARTED);
-                instance->DoStopTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_QUICK_DEMISE_START_EVENT);
+                pInstance->SetData(DATA_HERALD_VOLAZJ, NOT_STARTED);
+                pInstance->DoStopTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_QUICK_DEMISE_START_EVENT);
             }
 
             // Visible for all players in insanity
@@ -172,17 +177,26 @@ public:
             // Cleanup
             Summons.DespawnAll();
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            me->SetControlled(false, UNIT_STATE_STUNNED);
+            me->SetControlled(false, UNIT_STAT_STUNNED);
+        }
+
+        void EnterEvadeMode()
+        {
+            me->RemoveAllAuras();
+            me->SetControlled(false, UNIT_STAT_STUNNED);
+            _EnterEvadeMode();
+            me->GetMotionMaster()->MoveTargetedHome();
+            Reset();
         }
 
         void EnterCombat(Unit* /*who*/)
         {
             DoScriptText(SAY_AGGRO, me);
 
-            if (instance)
+            if (pInstance)
             {
-                instance->SetData(DATA_HERALD_VOLAZJ, IN_PROGRESS);
-                instance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_QUICK_DEMISE_START_EVENT);
+                pInstance->SetData(DATA_HERALD_VOLAZJ, IN_PROGRESS);
+                pInstance->DoStartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, ACHIEV_QUICK_DEMISE_START_EVENT);
             }
         }
 
@@ -237,11 +251,11 @@ public:
             // Roll Insanity
             uint32 spell = GetSpellForPhaseMask(phase);
             uint32 spell2 = GetSpellForPhaseMask(nextPhase);
-            Map* map = me->GetMap();
-            if (!map)
+            Map* pMap = me->GetMap();
+            if (!pMap)
                 return;
 
-            Map::PlayerList const &PlayerList = map->GetPlayers();
+            Map::PlayerList const &PlayerList = pMap->GetPlayers();
             if (!PlayerList.isEmpty())
             {
                 for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
@@ -272,7 +286,7 @@ public:
 
                 insanityHandled = 0;
                 me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                me->SetControlled(false, UNIT_STATE_STUNNED);
+                me->SetControlled(false, UNIT_STAT_STUNNED);
                 me->RemoveAurasDueToSpell(INSANITY_VISUAL);
             }
 
@@ -302,16 +316,19 @@ public:
         {
             DoScriptText(SAY_DEATH_1, me);
 
-            if (instance)
-                instance->SetData(DATA_HERALD_VOLAZJ, DONE);
+            if (pInstance)
+                pInstance->SetData(DATA_HERALD_VOLAZJ, DONE);
 
             Summons.DespawnAll();
             ResetPlayersPhaseMask();
         }
 
-        void KilledUnit(Unit* /*victim*/)
+        void KilledUnit(Unit* victim)
         {
             DoScriptText(RAND(SAY_SLAY_1, SAY_SLAY_2, SAY_SLAY_3), me);
+
+            if (victim->GetTypeId() == TYPEID_PLAYER)
+                victim->RemoveAurasDueToSpell(GetSpellForPhaseMask(victim->GetPhaseMask()));
         }
     };
 
@@ -323,5 +340,5 @@ public:
 
 void AddSC_boss_volazj()
 {
-    new boss_volazj();
+    new boss_volazj;
 }

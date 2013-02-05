@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -56,9 +59,9 @@ public:
 
     struct boss_erekemAI : public ScriptedAI
     {
-        boss_erekemAI(Creature* creature) : ScriptedAI(creature)
+        boss_erekemAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiBloodlustTimer;
@@ -66,6 +69,7 @@ public:
         uint32 uiEarthShockTimer;
         uint32 uiLightningBoltTimer;
         uint32 uiEarthShieldTimer;
+        uint32 uiBreakBoundsTimer;
 
         InstanceScript* instance;
 
@@ -76,6 +80,8 @@ public:
             uiEarthShockTimer = urand(2000, 8000);
             uiLightningBoltTimer = urand(5000, 10000);
             uiEarthShieldTimer = 20000;
+            uiBreakBoundsTimer = urand(10000, 20000);
+
             if (instance)
             {
                 if (instance->GetData(DATA_WAVE_COUNT) == 6)
@@ -98,7 +104,7 @@ public:
 
         void AttackStart(Unit* who)
         {
-            if (me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC) || me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+            if (me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE) || me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 return;
 
             if (me->Attack(who, true))
@@ -110,13 +116,13 @@ public:
 
                 if (Creature* pGuard1 = Unit::GetCreature(*me, instance ? instance->GetData64(DATA_EREKEM_GUARD_1) : 0))
                 {
-                    pGuard1->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC|UNIT_FLAG_NON_ATTACKABLE);
+                    pGuard1->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE|UNIT_FLAG_NON_ATTACKABLE);
                     if (!pGuard1->getVictim() && pGuard1->AI())
                         pGuard1->AI()->AttackStart(who);
                 }
                 if (Creature* pGuard2 = Unit::GetCreature(*me, instance ? instance->GetData64(DATA_EREKEM_GUARD_2) : 0))
                 {
-                    pGuard2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC|UNIT_FLAG_NON_ATTACKABLE);
+                    pGuard2->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE|UNIT_FLAG_NON_ATTACKABLE);
                     if (!pGuard2->getVictim() && pGuard2->AI())
                         pGuard2->AI()->AttackStart(who);
                 }
@@ -167,8 +173,11 @@ public:
 
             if (uiEarthShieldTimer <= diff)
             {
-                DoCast(me, SPELL_EARTH_SHIELD);
+                if (!me->IsNonMeleeSpellCasted(false))
+                {
+                    DoCast(me, DUNGEON_MODE(SPELL_EARTH_SHIELD, H_SPELL_EARTH_SHIELD));
                 uiEarthShieldTimer = 20000;
+                }
             } else uiEarthShieldTimer -= diff;
 
             if (uiChainHealTimer <= diff)
@@ -176,33 +185,51 @@ public:
                 if (uint64 TargetGUID = GetChainHealTargetGUID())
                 {
                     if (Creature* target = Unit::GetCreature(*me, TargetGUID))
-                        DoCast(target, SPELL_CHAIN_HEAL);
+                        DoCast(target, DUNGEON_MODE(SPELL_CHAIN_HEAL, H_SPELL_CHAIN_HEAL));
 
                     //If one of the adds is dead spawn heals faster
                     Creature* pGuard1 = Unit::GetCreature(*me, instance ? instance->GetData64(DATA_EREKEM_GUARD_1) : 0);
                     Creature* pGuard2 = Unit::GetCreature(*me, instance ? instance->GetData64(DATA_EREKEM_GUARD_2) : 0);
-                    uiChainHealTimer = ((pGuard1 && !pGuard1->isAlive()) || (pGuard2 && !pGuard2->isAlive()) ? 3000 : 8000) + rand()%3000;
+                    uiChainHealTimer = ((pGuard1 && !pGuard1->isAlive()) || (pGuard2 && !pGuard2->isAlive()) ? 3000 : 8000) + rand()%3000+6000;
                 }
             } else uiChainHealTimer -= diff;
 
             if (uiBloodlustTimer <= diff)
             {
+                if (!me->IsNonMeleeSpellCasted(false))
+                {
                 DoCast(me, SPELL_BLOODLUST);
                 uiBloodlustTimer = urand(35000, 45000);
+                }
             } else uiBloodlustTimer -= diff;
 
             if (uiEarthShockTimer <= diff)
             {
+                if (!me->IsNonMeleeSpellCasted(false))
+                {
                 DoCast(me->getVictim(), SPELL_EARTH_SHOCK);
                 uiEarthShockTimer = urand(8000, 13000);
+                }
             } else uiEarthShockTimer -= diff;
 
             if (uiLightningBoltTimer <= diff)
             {
+                if (!me->IsNonMeleeSpellCasted(false))
+                {
                 if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
                     DoCast(target, SPELL_LIGHTNING_BOLT);
                 uiLightningBoltTimer = urand(18000, 24000);
+                }
             } else uiLightningBoltTimer -= diff;
+
+            if (uiBreakBoundsTimer <= diff)
+            {
+                if (!me->IsNonMeleeSpellCasted(false))
+                {
+                    DoCast(me, SPELL_BREAK_BONDS);
+                    uiBreakBoundsTimer = urand(10000, 20000);
+                }
+            } else uiBreakBoundsTimer -= diff;
 
             DoMeleeAttackIfReady();
         }
@@ -215,11 +242,17 @@ public:
             {
                 if (instance->GetData(DATA_WAVE_COUNT) == 6)
                 {
+                    if (IsHeroic() && instance->GetData(DATA_1ST_BOSS_EVENT) == DONE)
+                        me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+
                     instance->SetData(DATA_1ST_BOSS_EVENT, DONE);
                     instance->SetData(DATA_WAVE_COUNT, 7);
                 }
                 else if (instance->GetData(DATA_WAVE_COUNT) == 12)
                 {
+                    if (IsHeroic() && instance->GetData(DATA_2ND_BOSS_EVENT) == DONE)
+                        me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+
                     instance->SetData(DATA_2ND_BOSS_EVENT, DONE);
                     instance->SetData(DATA_WAVE_COUNT, 13);
                 }
@@ -270,9 +303,9 @@ public:
 
     struct mob_erekem_guardAI : public ScriptedAI
     {
-        mob_erekem_guardAI(Creature* creature) : ScriptedAI(creature)
+        mob_erekem_guardAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiGushingWoundTimer;
@@ -290,7 +323,7 @@ public:
 
         void AttackStart(Unit* who)
         {
-            if (me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC) || me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+            if (me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE) || me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 return;
 
             if (me->Attack(who, true))

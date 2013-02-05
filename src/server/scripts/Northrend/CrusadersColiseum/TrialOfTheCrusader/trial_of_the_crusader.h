@@ -1,7 +1,20 @@
-/* Copyright (C) 2009 - 2010 by /dev/rsa for ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
- * This program is free software licensed under GPL version 2
- * Please see the included DOCS/LICENSE.TXT for more information */
-
+/*
+ * Copyright (C) 2008 - 2013 ArkCORE <http://www.arkania.net/>
+ * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #ifndef DEF_CRUSADER_H
 #define DEF_CRUSADER_H
 
@@ -22,6 +35,8 @@ enum
     TYPE_EVENT_NPC              = 102,
     TYPE_NORTHREND_BEASTS       = 103,
 
+    DATA_HEALTH_TWIN_SHARED     = 201,
+
     DATA_SNOBOLD_COUNT                   = 301,
     DATA_MISTRESS_OF_PAIN_COUNT          = 302,
     DATA_TRIBUTE_TO_IMMORTALITY_ELEGIBLE = 303,
@@ -33,13 +48,6 @@ enum
     SPELL_JARAXXUS_CHAINS       = 67924,
 
     DESPAWN_TIME                = 300000,
-};
-
-const Position ToCSpawnLoc[]=
-{
-    {563.912f, 261.625f, 394.73f, 4.70437f}, //  0 Center
-    {575.451f, 261.496f, 394.73f,  4.6541f}, //  1 Left
-    {549.951f,  261.55f, 394.73f, 4.74835f}, //  2 Right
 };
 
 const Position ToCCommonLoc[]=
@@ -215,9 +223,6 @@ enum eCreature
     NPC_LIGHTBANE               = 34497,
     NPC_DARKBANE                = 34496,
 
-    NPC_DARK_ESSENCE            = 34567,
-    NPC_LIGHT_ESSENCE           = 34568,
-
     NPC_ANUBARAK                = 34564,
 };
 
@@ -279,6 +284,12 @@ enum eAchievementData
 
     // Timed events
     EVENT_START_TWINS_FIGHT                 = 21853
+};
+
+enum eDestructibleBuildingsFaction
+{
+    GO_ALLIANCE_FACTION = 1732,
+    GO_HORDE_FACTION    = 1735,
 };
 
 #endif

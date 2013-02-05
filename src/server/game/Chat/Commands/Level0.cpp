@@ -1,22 +1,28 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ProjectSkyfire <http://www.projectskyfire.org/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include "gamePCH.h"
 #include "Common.h"
 #include "DatabaseEnv.h"
 #include "World.h"
@@ -30,9 +36,9 @@
 #include "revision.h"
 #include "Util.h"
 
-bool ChatHandler::HandleHelpCommand(const char* args)
+bool ChatHandler::HandleHelpCommand (const char* args)
 {
-    char* cmd = strtok((char*)args, " ");
+    char* cmd = strtok((char*) args, " ");
     if (!cmd)
     {
         ShowHelpForCommand(getCommandTable(), "help");
@@ -47,15 +53,15 @@ bool ChatHandler::HandleHelpCommand(const char* args)
     return true;
 }
 
-bool ChatHandler::HandleCommandsCommand(const char* /*args*/)
+bool ChatHandler::HandleCommandsCommand (const char* /*args*/)
 {
     ShowHelpForCommand(getCommandTable(), "");
     return true;
 }
 
-bool ChatHandler::HandleStartCommand(const char* /*args*/)
+bool ChatHandler::HandleStartCommand (const char* /*args*/)
 {
-    Player* chr = m_session->GetPlayer();
+    Player *chr = m_session->GetPlayer();
 
     if (chr->isInFlight())
     {
@@ -73,9 +79,9 @@ bool ChatHandler::HandleStartCommand(const char* /*args*/)
 
     if ((chr->isDead()) || (chr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST)))
     {
-    // if player is dead and stuck, send ghost to graveyard
-    chr->RepopAtGraveyard();
-    return true;
+        // if player is dead and stuck, send ghost to graveyard
+        chr->RepopAtGraveyard();
+        return true;
     }
 
     // cast spell Stuck
@@ -83,7 +89,27 @@ bool ChatHandler::HandleStartCommand(const char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleDismountCommand(const char* /*args*/)
+bool ChatHandler::HandleServerInfoCommand (const char* /*args*/)
+{
+    uint32 PlayersNum = sWorld->GetPlayerCount();
+    uint32 MaxPlayersNum = sWorld->GetMaxPlayerCount();
+    uint32 activeClientsNum = sWorld->GetActiveSessionCount();
+    uint32 queuedClientsNum = sWorld->GetQueuedSessionCount();
+    uint32 maxActiveClientsNum = sWorld->GetMaxActiveSessionCount();
+    uint32 maxQueuedClientsNum = sWorld->GetMaxQueuedSessionCount();
+    std::string uptime = secsToTimeString(sWorld->GetUptime());
+    //uint32 updateTime = sWorld->GetUpdateTime();
+
+    PSendSysMessage(_FULLVERSION);
+    PSendSysMessage(LANG_CONNECTED_PLAYERS, PlayersNum, MaxPlayersNum);
+    PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum, queuedClientsNum, maxQueuedClientsNum);
+    PSendSysMessage(LANG_UPTIME, uptime.c_str());
+    //PSendSysMessage("Update time diff: %u.", updateTime); // This is useless
+
+    return true;
+}
+
+bool ChatHandler::HandleDismountCommand (const char* /*args*/)
 {
     //If player is not mounted, so go out :)
     if (!m_session->GetPlayer()->IsMounted())
@@ -100,30 +126,61 @@ bool ChatHandler::HandleDismountCommand(const char* /*args*/)
         return false;
     }
 
-    m_session->GetPlayer()->Dismount();
+    m_session->GetPlayer()->Unmount();
     m_session->GetPlayer()->RemoveAurasByType(SPELL_AURA_MOUNTED);
     return true;
 }
 
-bool ChatHandler::HandleSaveCommand(const char* /*args*/)
+bool ChatHandler::HandleSaveCommand (const char* /*args*/)
 {
-    Player* player = m_session->GetPlayer();
+    Player *player = m_session->GetPlayer();
 
     // save GM account without delay and output message
-    if (!AccountMgr::IsPlayerAccount(m_session->GetSecurity()))
+    if (m_session->GetSecurity() > SEC_PLAYER)
     {
-        if (Player* target = getSelectedPlayer())
-            target->SaveToDB();
-        else
-            player->SaveToDB();
+        player->SaveToDB();
         SendSysMessage(LANG_PLAYER_SAVED);
         return true;
     }
 
     // save if the player has last been saved over 20 seconds ago
     uint32 save_interval = sWorld->getIntConfig(CONFIG_INTERVAL_SAVE);
-    if (save_interval == 0 || (save_interval > 20*IN_MILLISECONDS && player->GetSaveTimer() <= save_interval - 20*IN_MILLISECONDS))
+    if (save_interval == 0 || (save_interval > 20 * IN_MILLISECONDS && player->GetSaveTimer() <= save_interval - 20 * IN_MILLISECONDS))
         player->SaveToDB();
 
+    return true;
+}
+
+bool ChatHandler::HandleGMListIngameCommand (const char* /*args*/)
+{
+    bool first = true;
+
+    ACE_GUARD_RETURN(ACE_Thread_Mutex, guard, *HashMapHolder<Player>::GetLock(), true);
+    HashMapHolder<Player>::MapType &m = sObjectAccessor->GetPlayers();
+    for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+    {
+        AccountTypes itr_sec = itr->second->GetSession()->GetSecurity();
+        if ((itr->second->isGameMaster() || (itr_sec > SEC_PLAYER && itr_sec <= AccountTypes(sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_GM_LIST)))) && (!m_session || itr->second->IsVisibleGloballyFor(m_session->GetPlayer())))
+        {
+            if (first)
+            {
+                SendSysMessage(LANG_GMS_ON_SRV);
+                first = false;
+            }
+
+            SendSysMessage(GetNameLink(itr->second).c_str());
+        }
+    }
+
+    if (first)
+        SendSysMessage(LANG_GMS_NOT_LOGGED);
+
+    return true;
+}
+
+/// Display the 'Message of the day' for the realm
+bool ChatHandler::HandleServerMotdCommand (const char* /*args*/)
+{
+    PSendSysMessage(LANG_MOTD_CURRENT, sWorld->GetMotd());
     return true;
 }

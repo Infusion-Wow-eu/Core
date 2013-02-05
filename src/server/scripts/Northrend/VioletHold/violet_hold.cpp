@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -254,10 +257,10 @@ class npc_sinclari_vh : public CreatureScript
 public:
     npc_sinclari_vh() : CreatureScript("npc_sinclari_vh") { }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*Sender*/, uint32 action)
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
     {
         player->PlayerTalkClass->ClearMenus();
-        switch (action)
+        switch (uiAction)
         {
             case GOSSIP_ACTION_INFO_DEF+1:
                 player->CLOSE_GOSSIP_MENU();
@@ -364,7 +367,7 @@ public:
                                 {
                                     if (Creature* pGuard = *itr)
                                     {
-                                        pGuard->SetWalk(false);
+                                        pGuard->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
                                         pGuard->GetMotionMaster()->MovePoint(0, MovePosition);
                                     }
                                 }
@@ -426,9 +429,9 @@ public:
 
     struct mob_azure_saboteurAI : public npc_escortAI
     {
-        mob_azure_saboteurAI(Creature* creature):npc_escortAI(creature)
+        mob_azure_saboteurAI(Creature* c):npc_escortAI(c)
         {
-            instance           = creature->GetInstanceScript();
+            instance           = c->GetInstanceScript();
             bHasGotMovingPoints = false;
             uiBoss = 0;
             Reset();
@@ -438,12 +441,15 @@ public:
         bool bHasGotMovingPoints;
         uint32 uiBoss;
 
+        void AttackStart(Unit* /*who*/) {}
+        void MoveInLineOfSight(Unit* /*who*/) {}
+
         void Reset()
         {
             if (instance && !uiBoss)
                 uiBoss = instance->GetData(DATA_WAVE_COUNT) == 6 ? instance->GetData(DATA_FIRST_BOSS) : instance->GetData(DATA_SECOND_BOSS);
             me->SetReactState(REACT_PASSIVE);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC|UNIT_FLAG_NON_ATTACKABLE);
+            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE|UNIT_FLAG_NON_ATTACKABLE);
             me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
 
@@ -549,9 +555,9 @@ public:
 
     struct npc_teleportation_portalAI : public ScriptedAI
     {
-        npc_teleportation_portalAI(Creature* creature) : ScriptedAI(creature), listOfMobs(me)
+        npc_teleportation_portalAI(Creature* c) : ScriptedAI(c), listOfMobs(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             uiTypeOfMobsPortal = urand(0, 1);    // 0 - elite mobs   1 - portal guardian or portal keeper with regular mobs
             bPortalGuardianOrKeeperOrEliteSpawn = false;
         }
@@ -673,9 +679,9 @@ public:
 
 struct violet_hold_trashAI : public npc_escortAI
 {
-    violet_hold_trashAI(Creature* creature):npc_escortAI(creature)
+    violet_hold_trashAI(Creature* c):npc_escortAI(c)
     {
-        instance = creature->GetInstanceScript();
+        instance = c->GetInstanceScript();
         bHasGotMovingPoints = false;
         if (instance)
             portalLocationID = instance->GetData(DATA_PORTAL_LOCATION);
@@ -786,7 +792,7 @@ struct violet_hold_trashAI : public npc_escortAI
 
     void CreatureStartAttackDoor()
     {
-        me->SetReactState(REACT_PASSIVE);
+        //me->SetReactState(REACT_PASSIVE);
         DoCast(SPELL_DESTROY_DOOR_SEAL);
         if (instance)
             instance->SetData(DATA_NPC_PRESENCE_AT_DOOR_ADD, 1);
@@ -805,9 +811,9 @@ public:
 
     struct mob_azure_invaderAI : public violet_hold_trashAI
     {
-        mob_azure_invaderAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_invaderAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiCleaveTimer;
@@ -882,9 +888,9 @@ public:
 
     struct mob_azure_binderAI : public violet_hold_trashAI
     {
-        mob_azure_binderAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_binderAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiArcaneExplosionTimer;
@@ -959,9 +965,9 @@ public:
 
     struct mob_azure_mage_slayerAI : public violet_hold_trashAI
     {
-        mob_azure_mage_slayerAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_mage_slayerAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiArcaneEmpowermentTimer;
@@ -1018,9 +1024,9 @@ public:
 
     struct mob_azure_raiderAI : public violet_hold_trashAI
     {
-        mob_azure_raiderAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_raiderAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiConcussionBlowTimer;
@@ -1069,9 +1075,9 @@ public:
 
     struct mob_azure_stalkerAI : public violet_hold_trashAI
     {
-        mob_azure_stalkerAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_stalkerAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
         uint32 uiBackstabTimer;
         uint32 uiTacticalBlinkTimer;
@@ -1127,9 +1133,9 @@ public:
 
     struct mob_azure_spellbreakerAI : public violet_hold_trashAI
     {
-        mob_azure_spellbreakerAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_spellbreakerAI(Creature* c) : violet_hold_trashAI(c)
         {
-             instance = creature->GetInstanceScript();
+             instance = c->GetInstanceScript();
         }
 
         uint32 uiArcaneBlastTimer;
@@ -1211,9 +1217,9 @@ public:
 
     struct  mob_azure_captainAI : public violet_hold_trashAI
     {
-        mob_azure_captainAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_captainAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiMortalStrikeTimer;
@@ -1262,9 +1268,9 @@ public:
 
     struct  mob_azure_sorcerorAI : public violet_hold_trashAI
     {
-        mob_azure_sorcerorAI(Creature* creature) : violet_hold_trashAI(creature)
+        mob_azure_sorcerorAI(Creature* c) : violet_hold_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         uint32 uiArcaneStreamTimer;

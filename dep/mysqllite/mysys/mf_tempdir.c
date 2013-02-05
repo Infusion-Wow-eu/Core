@@ -91,4 +91,3 @@ void free_tmpdir(MY_TMPDIR *tmpdir)
   delete_dynamic(&tmpdir->full_list);
   mysql_mutex_destroy(&tmpdir->mutex);
 }
-

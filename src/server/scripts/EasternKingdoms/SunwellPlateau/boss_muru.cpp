@@ -1,10 +1,13 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
+ *
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -114,9 +117,9 @@ public:
 
     struct boss_entropiusAI : public ScriptedAI
     {
-        boss_entropiusAI(Creature* creature) : ScriptedAI(creature), Summons(me)
+        boss_entropiusAI(Creature* c) : ScriptedAI(c), Summons(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -152,7 +155,7 @@ public:
                     summoned->CastSpell(summoned, SPELL_DARKFIEND_VISUAL, false);
                     break;
                 case CREATURE_DARKNESS:
-                    summoned->AddUnitState(UNIT_STATE_STUNNED);
+                    summoned->AddUnitState(UNIT_STAT_STUNNED);
                     float x, y, z, o;
                     summoned->GetHomePosition(x, y, z, o);
                     me->SummonCreature(CREATURE_DARK_FIENDS, x, y, z, o, TEMPSUMMON_CORPSE_DESPAWN, 0);
@@ -213,9 +216,9 @@ public:
 
     struct boss_muruAI : public Scripted_NoMovementAI
     {
-        boss_muruAI(Creature* creature) : Scripted_NoMovementAI(creature), Summons(me)
+        boss_muruAI(Creature* c) : Scripted_NoMovementAI(c), Summons(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -330,14 +333,14 @@ public:
                             else
                             {
                                 DarkFiend = false;
-                                for (uint8 j = 0; j < 8; ++j)
-                                    me->SummonCreature(CREATURE_DARK_FIENDS, DarkFiends[j][0], DarkFiends[j][1], DarkFiends[j][2], DarkFiends[j][3], TEMPSUMMON_CORPSE_DESPAWN, 0);
+                                for (uint8 i = 0; i < 8; ++i)
+                                    me->SummonCreature(CREATURE_DARK_FIENDS, DarkFiends[i][0], DarkFiends[i][1], DarkFiends[i][2], DarkFiends[i][3], TEMPSUMMON_CORPSE_DESPAWN, 0);
                                 Timer[TIMER_DARKNESS] = 42000;
                             }
                             break;
                         case TIMER_HUMANOIDES:
-                            for (uint8 j = 0; j < 6; ++j)
-                                me->SummonCreature(uint32(Humanoides[j][0]), Humanoides[j][1], Humanoides[j][2], Humanoides[j][3], Humanoides[j][4], TEMPSUMMON_CORPSE_DESPAWN, 0);
+                            for (uint8 i = 0; i < 6; ++i)
+                                me->SummonCreature(uint32(Humanoides[i][0]), Humanoides[i][1], Humanoides[i][2], Humanoides[i][3], Humanoides[i][4], TEMPSUMMON_CORPSE_DESPAWN, 0);
                             Timer[TIMER_HUMANOIDES] = 60000;
                             break;
                         case TIMER_PHASE:
@@ -377,9 +380,9 @@ public:
 
     struct npc_muru_portalAI : public Scripted_NoMovementAI
     {
-        npc_muru_portalAI(Creature* creature) : Scripted_NoMovementAI(creature), Summons(me)
+        npc_muru_portalAI(Creature* c) : Scripted_NoMovementAI(c), Summons(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -398,7 +401,7 @@ public:
             InAction = false;
             SummonSentinel = false;
 
-            me->AddUnitState(UNIT_STATE_STUNNED);
+            me->AddUnitState(UNIT_STAT_STUNNED);
 
             Summons.DespawnAll();
         }
@@ -412,7 +415,7 @@ public:
             Summons.Summon(summoned);
         }
 
-        void SpellHit(Unit* /*caster*/, const SpellInfo* Spell)
+        void SpellHit(Unit* /*caster*/, const SpellEntry* Spell)
         {
             float x, y, z, o;
             me->GetHomePosition(x, y, z, o);
@@ -460,7 +463,7 @@ public:
 
     struct npc_dark_fiendAI : public ScriptedAI
     {
-        npc_dark_fiendAI(Creature* creature) : ScriptedAI(creature) {}
+        npc_dark_fiendAI(Creature* c) : ScriptedAI(c) {}
 
         uint32 WaitTimer;
         bool InAction;
@@ -470,13 +473,14 @@ public:
             WaitTimer = 2000;
             InAction = false;
 
-            me->AddUnitState(UNIT_STATE_STUNNED);
+            me->AddUnitState(UNIT_STAT_STUNNED);
         }
 
-        void SpellHit(Unit* /*caster*/, const SpellInfo* Spell)
+        void SpellHit(Unit* /*caster*/, const SpellEntry* Spell)
         {
             for (uint8 i = 0; i < 3; ++i)
-                if (Spell->Effects[i].Effect == 38)
+                //TODO: Fix
+                //if (Spell->Effects[i].Effect == 38)
                     me->DisappearAndDie();
         }
 
@@ -489,7 +493,7 @@ public:
             {
                 if (!InAction)
                 {
-                    me->ClearUnitState(UNIT_STATE_STUNNED);
+                    me->ClearUnitState(UNIT_STAT_STUNNED);
                     DoCastAOE(SPELL_DARKFIEND_SKIN, false);
                     AttackStart(SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true));
                     InAction = true;
@@ -521,7 +525,7 @@ public:
 
     struct npc_void_sentinelAI : public ScriptedAI
     {
-        npc_void_sentinelAI(Creature* creature) : ScriptedAI(creature){}
+        npc_void_sentinelAI(Creature* c) : ScriptedAI(c){}
 
         uint32 PulseTimer;
         uint32 VoidBlastTimer;
@@ -576,9 +580,9 @@ public:
 
     struct npc_blackholeAI : public ScriptedAI
     {
-        npc_blackholeAI(Creature* creature) : ScriptedAI(creature)
+        npc_blackholeAI(Creature* c) : ScriptedAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
         }
 
         InstanceScript* instance;
@@ -594,7 +598,7 @@ public:
             SpellTimer = 5000;
             Phase = 0;
 
-            me->AddUnitState(UNIT_STATE_STUNNED);
+            me->AddUnitState(UNIT_STAT_STUNNED);
             DoCastAOE(SPELL_BLACKHOLE_SPAWN, true);
         }
 
@@ -606,7 +610,7 @@ public:
                 switch (NeedForAHack)
                 {
                     case 0:
-                        me->ClearUnitState(UNIT_STATE_STUNNED);
+                        me->ClearUnitState(UNIT_STAT_STUNNED);
                         DoCastAOE(SPELL_BLACKHOLE_GROW, false);
                         if (Victim)
                             AttackStart(Victim);

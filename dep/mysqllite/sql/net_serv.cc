@@ -30,7 +30,7 @@
 */
 
 /*
-  HFTODO this must be hidden if we don't want client capabilities in 
+  HFTODO this must be hidden if we don't want client capabilities in
   embedded library
  */
 #include <my_global.h>
@@ -172,7 +172,7 @@ my_bool net_realloc(NET *net, size_t length)
 #endif
     DBUG_RETURN(1);
   }
-  pkt_length = (length+IO_SIZE-1) & ~(IO_SIZE-1); 
+  pkt_length = (length+IO_SIZE-1) & ~(IO_SIZE-1);
   /*
     We must allocate some extra bytes for the end 0 and to be able to
     read big compressed blocks + 1 safety byte since uint3korr() in
@@ -408,7 +408,7 @@ my_net_write(NET *net,const uchar *packet,size_t len)
     As the command is part of the first data packet, we have to do some data
     juggling to put the command in there, without having to create a new
     packet.
-  
+
     This function will split big packets into sub-packets if needed.
     (Each sub packet can only be 2^24 bytes)
 
@@ -517,7 +517,7 @@ net_write_buff(NET *net, const uchar *packet, ulong len)
     {
       /* Fill up already used packet and write it */
       memcpy((char*) net->write_pos,packet,left_length);
-      if (net_real_write(net, net->buff, 
+      if (net_real_write(net, net->buff,
 			 (size_t) (net->write_pos - net->buff) + left_length))
 	return 1;
       net->write_pos= net->buff;
@@ -907,7 +907,7 @@ my_real_read(NET *net, size_t *complen)
 		       ("Packets out of order (Found: %d, expected %u)",
 			(int) net->buff[net->where_b + 3],
 			net->pkt_nr));
-            /* 
+            /*
               We don't make noise server side, since the client is expected
               to break the protocol for e.g. --send LOAD DATA .. LOCAL where
               the server expects the client to send a file, but the client
@@ -1067,7 +1067,7 @@ my_net_read(NET *net)
       {
 	read_length = uint3korr(net->buff+start_of_packet);
 	if (!read_length)
-	{ 
+	{
 	  /* End of multi-byte packet */
 	  start_of_packet += NET_HEADER_SIZE;
 	  break;

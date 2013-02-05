@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ *
+ * Copyright (C) 2011 - 2013 ArkCORE <http://www.arkania.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -29,39 +30,39 @@
 
 float HordeWPs[8][3]=//basic waypoints from spawn to leader
 {
-    {5492.91f,    -2404.61f,    1462.63f},
-    {5531.76f,    -2460.87f,    1469.55f},
-    {5554.58f,    -2514.66f,    1476.12f},
-    {5554.16f,    -2567.23f,    1479.90f},
-    {5540.67f,    -2625.99f,    1480.89f},
-    {5508.16f,    -2659.20f,    1480.15f}, //random rush starts from here
-    {5489.62f,    -2704.05f,    1482.18f},
-    {5457.04f,    -2726.26f,    1485.10f}
+    {5492.91f,   -2404.61f,   1462.63f},
+    {5531.76f,   -2460.87f,   1469.55f},
+    {5554.58f,   -2514.66f,   1476.12f},
+    {5554.16f,   -2567.23f,   1479.90f},
+    {5540.67f,   -2625.99f,   1480.89f},
+    {5508.16f,   -2659.20f,   1480.15f}, //random rush starts from here
+    {5489.62f,   -2704.05f,   1482.18f},
+    {5457.04f,   -2726.26f,   1485.10f}
 };
 float AllianceWPs[8][3]=//basic waypoints from spawn to leader
 {
-    {4896.08f,    -1576.35f,    1333.65f},
-    {4898.68f,    -1615.02f,    1329.48f},
-    {4907.12f,    -1667.08f,    1321.00f},
-    {4963.18f,    -1699.35f,    1340.51f},
-    {4989.16f,    -1716.67f,    1335.74f}, //first WP in the base, after the gate
-    {5026.27f,    -1736.89f,    1323.02f},
-    {5037.77f,    -1770.56f,    1324.36f},
-    {5067.23f,    -1789.95f,    1321.17f}
+    {4896.08f,   -1576.35f,   1333.65f},
+    {4898.68f,   -1615.02f,   1329.48f},
+    {4907.12f,   -1667.08f,   1321.00f},
+    {4963.18f,   -1699.35f,   1340.51f},
+    {4989.16f,   -1716.67f,   1335.74f}, //first WP in the base, after the gate
+    {5026.27f,   -1736.89f,   1323.02f},
+    {5037.77f,   -1770.56f,   1324.36f},
+    {5067.23f,   -1789.95f,   1321.17f}
 };
 
 float FrostWyrmWPs[3][3]=//waypoints for the frost wyrms in horde base
 {
-    {5580.82f,    -2628.83f,    1528.28f},
-    {5550.90f,    -2667.16f,    1505.45f},
-    {5459.64f,    -2725.91f,    1484.83f}
+    {5580.82f,   -2628.83f,   1528.28f},
+    {5550.90f,   -2667.16f,   1505.45f},
+    {5459.64f,   -2725.91f,   1484.83f}
 };
 
 float GargoyleWPs[3][3]=//waypoints for the gargoyles in horde base
 {
-    {5533.66f,    -2634.32f,    1495.33f},
-    {5517.88f,    -2712.05f,    1490.54f},
-    {5459.64f,    -2725.91f,    1484.83f}
+    {5533.66f,   -2634.32f,   1495.33f},
+    {5517.88f,   -2712.05f,   1490.54f},
+    {5459.64f,   -2725.91f,   1484.83f}
 };
 
 float FlyPathWPs[3][3]=//waypoints for the gargoyls and frost wyrms in horde base in wave 1/3
@@ -155,9 +156,9 @@ float HordeOverrunWP[21][3]=//waypoints in the horde base used in the end in the
     {5429.91f, -2718.44f, 1493.42f}//20 end 2
 };
 
-hyjal_trashAI::hyjal_trashAI(Creature* creature) : npc_escortAI(creature)
+hyjal_trashAI::hyjal_trashAI(Creature* c) : npc_escortAI(c)
 {
-    instance = creature->GetInstanceScript();
+    instance = c->GetInstanceScript();
     IsEvent = false;
     Delay = 0;
     LastOverronPos = 0;
@@ -395,9 +396,9 @@ public:
 
     struct mob_giant_infernalAI : public hyjal_trashAI
     {
-        mob_giant_infernalAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_giant_infernalAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             meteor = false;//call once!
             CanMove = false;
             Delay = rand()%30000;
@@ -459,7 +460,7 @@ public:
                 {
                     trigger->SetVisible(false);
                     trigger->setFaction(me->getFaction());
-                    trigger->SetLevitate(true);
+                    trigger->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
                     trigger->CastSpell(me, SPELL_METEOR, true);
                 }
                 me->GetMotionMaster()->Clear();
@@ -539,9 +540,9 @@ public:
 
     struct mob_abominationAI : public hyjal_trashAI
     {
-        mob_abominationAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_abominationAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -639,9 +640,9 @@ public:
 
     struct mob_ghoulAI : public hyjal_trashAI
     {
-        mob_ghoulAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_ghoulAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -746,9 +747,9 @@ public:
 
     struct mob_necromancerAI : public hyjal_trashAI
     {
-        mob_necromancerAI(Creature* creature) : hyjal_trashAI(creature), summons(me)
+        mob_necromancerAI(Creature* c) : hyjal_trashAI(c), summons(me)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -866,9 +867,9 @@ public:
 
     struct mob_bansheeAI : public hyjal_trashAI
     {
-        mob_bansheeAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_bansheeAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -970,9 +971,9 @@ public:
 
     struct mob_crypt_fiendAI : public hyjal_trashAI
     {
-        mob_crypt_fiendAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_crypt_fiendAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -1060,9 +1061,9 @@ public:
 
     struct mob_fel_stalkerAI : public hyjal_trashAI
     {
-        mob_fel_stalkerAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_fel_stalkerAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -1150,9 +1151,9 @@ public:
 
     struct mob_frost_wyrmAI : public hyjal_trashAI
     {
-        mob_frost_wyrmAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_frost_wyrmAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             Reset();
@@ -1167,7 +1168,7 @@ public:
         {
             FrostBreathTimer = 5000;
             MoveTimer = 0;
-            me->SetLevitate(true);
+            me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
         }
 
         void WaypointReached(uint32 i)
@@ -1266,9 +1267,9 @@ public:
 
     struct mob_gargoyleAI : public hyjal_trashAI
     {
-        mob_gargoyleAI(Creature* creature) : hyjal_trashAI(creature)
+        mob_gargoyleAI(Creature* c) : hyjal_trashAI(c)
         {
-            instance = creature->GetInstanceScript();
+            instance = c->GetInstanceScript();
             go = false;
             pos = 0;
             DummyTarget[0] = 0;DummyTarget[1] = 0;DummyTarget[2] = 0;
@@ -1288,7 +1289,7 @@ public:
             Zpos = 10.0f;
             StrikeTimer = 2000+rand()%5000;
             MoveTimer = 0;
-            me->SetLevitate(true);
+            me->AddUnitMovementFlag(MOVEMENTFLAG_LEVITATING);
         }
 
         void WaypointReached(uint32 i)
@@ -1405,7 +1406,7 @@ public:
 
     struct alliance_riflemanAI : public Scripted_NoMovementAI
     {
-        alliance_riflemanAI(Creature* creature) : Scripted_NoMovementAI(creature)
+        alliance_riflemanAI(Creature* c) : Scripted_NoMovementAI(c)
         {
             Reset();
         }

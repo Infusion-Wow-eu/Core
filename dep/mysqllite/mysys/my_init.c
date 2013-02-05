@@ -1,4 +1,4 @@
-/* Copyright (c) 2000, 2012, Oracle and/or its affiliates. All rights reserved.
+/* Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,6 +96,10 @@ my_bool my_init(void)
 
 #if defined(MY_PTHREAD_FASTMUTEX) && !defined(SAFE_MUTEX)
   fastmutex_global_init();              /* Must be called early */
+#endif
+
+#if defined(HAVE_PTHREAD_INIT)
+  pthread_init();			/* Must be called before DBUG_ENTER */
 #endif
 
   /* $HOME is needed early to parse configuration files located in ~/ */
@@ -223,7 +227,7 @@ Voluntary context switches %ld, Involuntary context switches %ld\n",
 
 /*
   my_parameter_handler
-  
+
   Invalid parameter handler we will use instead of the one "baked"
   into the CRT for MSC v8.  This one just prints out what invalid
   parameter was encountered.  By providing this routine, routines like
@@ -549,4 +553,3 @@ void my_init_mysys_psi_keys()
   PSI_server->register_file(category, all_mysys_files, count);
 }
 #endif /* HAVE_PSI_INTERFACE */
-

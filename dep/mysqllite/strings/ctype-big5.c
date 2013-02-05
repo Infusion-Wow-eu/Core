@@ -32,9 +32,9 @@
 
 #ifdef HAVE_CHARSET_big5
 
-/* 
+/*
   Support for Chinese(BIG5) characters, by jou@nematic.ieo.nctu.edu.tw
-  modified by Wei He (hewei@mail.ied.ac.cn) 
+  modified by Wei He (hewei@mail.ied.ac.cn)
   modified by Alex Barkov <bar@udm.net>
 */
 
@@ -649,7 +649,7 @@ static MY_UNICASE_INFO cC7[256]=
   {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
   {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
   /* C7A0-C7AF */
-  {0x0000,0x0000,0x0000}, 
+  {0x0000,0x0000,0x0000},
   {0xC7A1,0xC7A1,0x30E7},
   {0xC7A2,0xC7A2,0x30E8},
   {0xC7A3,0xC7A3,0x30E9},
@@ -857,7 +857,7 @@ static int my_strnncoll_big5_internal(const uchar **a_res,
 
 /* Compare strings */
 
-static int my_strnncoll_big5(CHARSET_INFO *cs __attribute__((unused)), 
+static int my_strnncoll_big5(CHARSET_INFO *cs __attribute__((unused)),
 			     const uchar *a, size_t a_length,
                              const uchar *b, size_t b_length,
                              my_bool b_is_prefix)
@@ -869,8 +869,8 @@ static int my_strnncoll_big5(CHARSET_INFO *cs __attribute__((unused)),
 
 /* compare strings, ignore end space */
 
-static int my_strnncollsp_big5(CHARSET_INFO * cs __attribute__((unused)), 
-			       const uchar *a, size_t a_length, 
+static int my_strnncollsp_big5(CHARSET_INFO * cs __attribute__((unused)),
+			       const uchar *a, size_t a_length,
 			       const uchar *b, size_t b_length,
                                my_bool diff_if_only_endspace_difference)
 {
@@ -909,7 +909,7 @@ static int my_strnncollsp_big5(CHARSET_INFO * cs __attribute__((unused)),
 }
 
 static size_t my_strnxfrm_big5(CHARSET_INFO *cs __attribute__((unused)),
-                               uchar *dest, size_t len, 
+                               uchar *dest, size_t len,
                                const uchar *src, size_t srclen)
 {
   uint16 e;
@@ -6769,46 +6769,46 @@ my_wc_mb_big5(CHARSET_INFO *cs __attribute__((unused)),
 
   if (s >= e)
     return MY_CS_TOOSMALL;
-  
+
   if ((int) wc < 0x80)
   {
     s[0]= (uchar) wc;
     return 1;
   }
-  
+
   if (!(code=func_uni_big5_onechar(wc)))
     return MY_CS_ILUNI;
-  
+
   if (s+2>e)
     return MY_CS_TOOSMALL;
-  
+
   s[0]=code>>8;
   s[1]=code&0xFF;
-  
+
   return 2;
 }
 
-static int 
+static int
 my_mb_wc_big5(CHARSET_INFO *cs __attribute__((unused)),
 	      my_wc_t *pwc,const uchar *s,const uchar *e)
 {
   int hi;
-  
+
   if (s >= e)
     return MY_CS_TOOSMALL;
-  
+
   if ((hi= s[0]) < 0x80)
   {
     pwc[0]=hi;
     return 1;
   }
-  
+
   if (s+2>e)
     return MY_CS_TOOSMALL2;
 
   if (!(pwc[0]=func_big5_uni_onechar((hi<<8)+s[1])))
     return -2;
-  
+
   return 2;
 }
 

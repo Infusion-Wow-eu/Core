@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2010 - 2013 Project SkyFire <http://www.projectskyfire.org/>
+ * Copyright (C) 2008 - 2013 TrinityCore <http://www.trinitycore.org/>
+ * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
@@ -17,8 +17,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SKYFIRE_LOG_H
-#define SKYFIRE_LOG_H
+#ifndef ARKCORECORE_LOG_H
+#define ARKCORECORE_LOG_H
 
 #include "Common.h"
 #include <ace/Singleton.h>
@@ -32,7 +32,7 @@ enum DebugLogFilters
     LOG_FILTER_PETS                     = 0x00000002,
     LOG_FILTER_VEHICLES                 = 0x00000004,
     LOG_FILTER_TSCR                     = 0x00000008,   // C++ AI, instance scripts, etc.
-    LOG_FILTER_DATABASE_AI              = 0x00000010,   // SmartAI, EventAI, CreatureAI
+    LOG_FILTER_DATABASE_AI              = 0x08000010,   // SmartAI, EventAI, CreatureAI
     LOG_FILTER_MAPSCRIPTS               = 0x00000020,
     LOG_FILTER_NETWORKIO                = 0x00000040,   // Anything packet/netcode related
     LOG_FILTER_SPELLS_AURAS             = 0x00000080,
@@ -53,7 +53,6 @@ enum DebugLogFilters
     LOG_FILTER_TRANSPORTS               = 0x00400000,   // Transport related
     LOG_FILTER_BATTLEFIELD              = 0x00800000,   // Battlefield related
     LOG_FILTER_OPCODES                  = 0x01000000,   // OpCode related
-    LOG_FILTER_WARDEN                   = 0x02000000,   // Warden related
 };
 
 enum LogTypes
@@ -140,7 +139,6 @@ class Log
         void outChat( const char * str, ... )                   ATTR_PRINTF(2, 3);
         void outArena( const char * str, ... )                  ATTR_PRINTF(2, 3);
         void outSQLDriver( const char* str, ... )               ATTR_PRINTF(2, 3);
-        void outWarden( const char * str, ... )                 ATTR_PRINTF(2, 3);
         void outCharDump( const char * str, uint32 account_id, uint32 guid, const char * name );
         void outOpCode(uint32 op, const char * name, bool smsg = true);
 
@@ -174,7 +172,6 @@ class Log
         FILE* arenaLogFile;
         FILE* sqlLogFile;
         FILE* sqlDevLogFile;
-        FILE* wardenLogFile;
 
         // cache values for after initilization use (like gm log per account case)
         std::string m_logsDir;

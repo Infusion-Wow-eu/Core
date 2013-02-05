@@ -45,7 +45,7 @@ typedef struct xml_attr_st
 #define	MY_XML_SPC  0x08 /* Spacing character */
 
 /*
- http://www.w3.org/TR/REC-xml/ 
+ http://www.w3.org/TR/REC-xml/
  [4] NameChar ::= Letter | Digit | '.' | '-' | '_' | ':' |
                   CombiningChar | Extender
  [5] Name ::= (Letter | '_' | ':') (NameChar)*
@@ -110,9 +110,9 @@ my_xml_parser_prefix_cmp(MY_XML_PARSER *p, const char *s, size_t slen)
 static int my_xml_scan(MY_XML_PARSER *p,MY_XML_ATTR *a)
 {
   int lex;
-  
+
   for (; ( p->cur < p->end) && my_xml_is_space(p->cur[0]) ;  p->cur++);
-  
+
   if (p->cur >= p->end)
   {
     a->beg=p->end;
@@ -120,10 +120,10 @@ static int my_xml_scan(MY_XML_PARSER *p,MY_XML_ATTR *a)
     lex=MY_XML_EOF;
     goto ret;
   }
-  
+
   a->beg=p->cur;
   a->end=p->cur;
-  
+
   if (!my_xml_parser_prefix_cmp(p, C_STRING_WITH_LEN("<!--")))
   {
     for (; p->cur < p->end; p->cur++)
@@ -238,7 +238,7 @@ static int my_xml_leave(MY_XML_PARSER *p, const char *str, size_t slen)
   /* Find previous '/' or beginning */
   for (e=p->attrend; (e>p->attr) && (e[0] != '/') ; e--);
   glen = (size_t) ((e[0] == '/') ? (p->attrend-e-1) : p->attrend-e);
-  
+
   if (str && (slen != glen))
   {
     mstr(s,str,sizeof(s)-1,slen);
@@ -251,16 +251,16 @@ static int my_xml_leave(MY_XML_PARSER *p, const char *str, size_t slen)
       sprintf(p->errstr,"'</%s>' unexpected (END-OF-INPUT wanted)", s);
     return MY_XML_ERROR;
   }
-  
+
   if (p->flags & MY_XML_FLAG_RELATIVE_NAMES)
     rc= p->leave_xml ? p->leave_xml(p, str, slen) : MY_XML_OK;
   else
     rc= (p->leave_xml ?  p->leave_xml(p,p->attr,p->attrend-p->attr) :
          MY_XML_OK);
-  
+
   *e='\0';
   p->attrend=e;
-  
+
   return rc;
 }
 
@@ -270,7 +270,7 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
   p->beg=str;
   p->cur=str;
   p->end=str+len;
-  
+
   while ( p->cur < p->end )
   {
     MY_XML_ATTR a;
@@ -279,12 +279,12 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
       int lex;
       int question=0;
       int exclam=0;
-      
+
       lex=my_xml_scan(p,&a);
-      
+
       if (MY_XML_COMMENT == lex)
         continue;
-      
+
       if (lex == MY_XML_CDATA)
       {
         a.beg+= 9;
@@ -292,9 +292,9 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
         my_xml_value(p, a.beg, (size_t) (a.end-a.beg));
         continue;
       }
-      
+
       lex=my_xml_scan(p,&a);
-      
+
       if (MY_XML_SLASH == lex)
       {
         if (MY_XML_IDENT != (lex=my_xml_scan(p,&a)))
@@ -307,7 +307,7 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
         lex=my_xml_scan(p,&a);
         goto gt;
       }
-      
+
       if (MY_XML_EXCLAM == lex)
       {
         lex=my_xml_scan(p,&a);
@@ -318,7 +318,7 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
         lex=my_xml_scan(p,&a);
         question=1;
       }
-      
+
       if (MY_XML_IDENT == lex)
       {
         p->current_node_type= MY_XML_NODE_TAG;
@@ -331,7 +331,7 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
 		lex2str(lex));
         return MY_XML_ERROR;
       }
-      
+
       while ((MY_XML_IDENT == (lex=my_xml_scan(p,&a))) ||
              ((MY_XML_STRING == lex && exclam)))
       {
@@ -373,14 +373,14 @@ int my_xml_parse(MY_XML_PARSER *p,const char *str, size_t len)
         else
           break;
       }
-      
+
       if (lex == MY_XML_SLASH)
       {
         if (MY_XML_OK != my_xml_leave(p,NULL,0))
           return MY_XML_ERROR;
         lex=my_xml_scan(p,&a);
       }
-      
+
 gt:
       if (question)
       {
@@ -393,13 +393,13 @@ gt:
           return MY_XML_ERROR;
         lex=my_xml_scan(p,&a);
       }
-      
+
       if (exclam)
       {
         if (MY_XML_OK != my_xml_leave(p,NULL,0))
           return MY_XML_ERROR;
       }
-      
+
       if (lex != MY_XML_GT)
       {
         sprintf(p->errstr,"%s unexpected ('>' wanted)",lex2str(lex));
@@ -411,7 +411,7 @@ gt:
       a.beg=p->cur;
       for ( ; (p->cur < p->end) && (p->cur[0] != '<')  ; p->cur++);
       a.end=p->cur;
-      
+
       if (!(p->flags & MY_XML_FLAG_SKIP_TEXT_NORMALIZATION))
         my_xml_norm_text(&a);
       if (a.beg != a.end)

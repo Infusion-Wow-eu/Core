@@ -1,45 +1,47 @@
 /*
- * Copyright (C) 2011-2013 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2013 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005 - 2013 MaNGOS <http://www.getmangos.com/>
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * Copyright (C) 2008 - 2013 Trinity <http://www.trinitycore.org/>
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
+ * Copyright (C) 2010 - 2013 ArkCORE <http://www.arkania.net/>
  *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-/// \addtogroup SkyFire Daemon
+/// \addtogroup Trinityd Trinity Daemon
 /// @{
 /// \file
-
-#include "Common.h"
-#include "DatabaseEnv.h"
-#include "Config.h"
-#include "Log.h"
-#include "Master.h"
-
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <ace/Version.h>
 
-#ifndef _SKYFIRE_CORE_CONFIG
-# define _SKYFIRE_CORE_CONFIG  "worldserver.conf"
-#endif //_SKYFIRE_CORE_CONFIG
+#include "Common.h"
+#include "Database/DatabaseEnv.h"
+#include "Configuration/Config.h"
 
+#include "Log.h"
+#include "Master.h"
+
+#ifndef _ARKCORE_CORE_CONFIG
+# define _ARKCORE_CORE_CONFIG  "worldserver.conf"
+#endif //_ARKCORE_CORE_CONFIG
 #ifdef _WIN32
 #include "ServiceWin32.h"
 char serviceName[] = "worldserver";
-char serviceLongName[] = "SkyFireEMU world service";
-char serviceDescription[] = "SkyFireEMU World of Warcraft:Cataclysm emulator world service";
+char serviceLongName[] = "ArkCORE world service";
+char serviceDescription[] = "ArkCORE World of Warcraft emulator world service";
 /*
  * -1 - not in service mode
  *  0 - stopped
@@ -49,33 +51,33 @@ char serviceDescription[] = "SkyFireEMU World of Warcraft:Cataclysm emulator wor
 int m_ServiceStatus = -1;
 #endif
 
-WorldDatabaseWorkerPool WorldDatabase;                      ///< Accessor to the world database
-CharacterDatabaseWorkerPool CharacterDatabase;              ///< Accessor to the character database
-LoginDatabaseWorkerPool LoginDatabase;                      ///< Accessor to the realm/login database
+WorldDatabaseWorkerPool WorldDatabase;          ///< Accessor to the world database
+CharacterDatabaseWorkerPool CharacterDatabase;          ///< Accessor to the character database
+LoginDatabaseWorkerPool LoginDatabase;          ///< Accessor to the realm/login database
 
-uint32 realmID;                                             ///< Id of the realm
+uint32 realmID;          ///< Id of the realm
 
 /// Print out the usage string for this program on the console.
-void usage(const char *prog)
+void usage (const char *prog)
 {
     sLog->outString("Usage: \n %s [<options>]\n"
-        "    -c config_file           use config_file as configuration file\n\r"
-        #ifdef _WIN32
-        "    Running as service functions:\n\r"
-        "    --service                run as service\n\r"
-        "    -s install               install service\n\r"
-        "    -s uninstall             uninstall service\n\r"
-        #endif
-        , prog);
+            "    -c config_file           use config_file as configuration file\n\r"
+#ifdef _WIN32
+            "    Running as service functions:\n\r"
+            "    --service                run as service\n\r"
+            "    -s install               install service\n\r"
+            "    -s uninstall             uninstall service\n\r"
+#endif
+,    prog);
 }
 
-/// Launch the SkyFire server
-extern int main(int argc, char **argv)
+/// Launch the Trinity server
+extern int main (int argc, char **argv)
 {
     ///- Command line parsing to get the configuration file name
-    char const* cfg_file = _SKYFIRE_CORE_CONFIG;
+    char const* cfg_file = _ARKCORE_CORE_CONFIG;
     int c = 1;
-    while ( c < argc )
+    while (c < argc)
     {
         if (strcmp(argv[c], "-c") == 0)
         {
@@ -89,7 +91,7 @@ extern int main(int argc, char **argv)
                 cfg_file = argv[c];
         }
 
-        #ifdef _WIN32
+#ifdef _WIN32
         ////////////
         //Services//
         ////////////
@@ -104,13 +106,13 @@ extern int main(int argc, char **argv)
             if (strcmp(argv[c], "install") == 0)
             {
                 if (WinServiceInstall())
-                    sLog->outString("Installing service");
+                sLog->outString("Installing service");
                 return 1;
             }
             else if (strcmp(argv[c], "uninstall") == 0)
             {
                 if (WinServiceUninstall())
-                    sLog->outString("Uninstalling service");
+                sLog->outString("Uninstalling service");
                 return 1;
             }
             else
@@ -125,11 +127,11 @@ extern int main(int argc, char **argv)
             WinServiceRun();
         }
         ////
-        #endif
+#endif
         ++c;
     }
 
-    if (!ConfigMgr::Load(cfg_file))
+    if (!sConfig->SetSource(cfg_file))
     {
         sLog->outError("Invalid or missing configuration file : %s", cfg_file);
         sLog->outError("Verify that the file exists and has \'[worldserver]' written in the top of the file!");
@@ -137,8 +139,8 @@ extern int main(int argc, char **argv)
     }
     sLog->outString("Using configuration file %s.", cfg_file);
 
-    sLog->outString("Using SSL version: %s (library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
-    sLog->outString("Using ACE version: %s", ACE_VERSION);
+    sLog->outDetail("%s (Library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
+    sLog->outDetail("Using ACE: %s", ACE_VERSION);
 
     ///- and run the 'Master'
     /// \todo Why do we need this 'Master'? Can't all of this be in the Main as for Realmd?
@@ -147,7 +149,7 @@ extern int main(int argc, char **argv)
     // at sMaster return function exist with codes
     // 0 - normal shutdown
     // 1 - shutdown at error
-    // 2 - restart command used, this code can be used by restarter for restart SkyFire Daemon
+    // 2 - restart command used, this code can be used by restarter for restart Trinityd
 
     return ret;
 }

@@ -15,7 +15,7 @@
 
 /**
   @file
-  
+
   Support code for the client side (libmysql) plugins
 
   Client plugins are somewhat different from server plugins, they are simpler.
@@ -83,7 +83,7 @@ static int is_not_initialized(MYSQL *mysql, const char *name)
   @param type   plugin type
 
   @note this does NOT necessarily need a mutex, take care!
-  
+
   @retval a pointer to a found plugin or 0
 */
 static struct st_mysql_client_plugin *
@@ -182,7 +182,7 @@ err1:
 /**
   Loads plugins which are specified in the environment variable
   LIBMYSQL_PLUGINS.
-  
+
   Multiple plugins must be separated by semicolon. This function doesn't
   return or log an error.
 
@@ -197,10 +197,6 @@ err1:
 static void load_env_plugins(MYSQL *mysql)
 {
   char *plugs, *free_env, *s= getenv("LIBMYSQL_PLUGINS");
-  char *enable_cleartext_plugin= getenv("LIBMYSQL_ENABLE_CLEARTEXT_PLUGIN");
-
-  if (enable_cleartext_plugin && strchr("1Yy", enable_cleartext_plugin[0]))
-    libmysql_cleartext_plugin_enabled= 1;
 
   /* no plugins to load */
   if(!s)
@@ -347,7 +343,7 @@ mysql_load_plugin_v(MYSQL *mysql, const char *name, int type,
            mysql->options.extension && mysql->options.extension->plugin_dir ?
            mysql->options.extension->plugin_dir : PLUGINDIR, "/",
            name, SO_EXT, NullS);
-   
+
   DBUG_PRINT ("info", ("dlopeninig %s", dlpath));
   /* Open new dll handle */
   if (!(dlhandle= dlopen(dlpath, RTLD_NOW)))
@@ -376,7 +372,7 @@ mysql_load_plugin_v(MYSQL *mysql, const char *name, int type,
   }
 
 #if defined(__APPLE__)
-have_plugin:  
+have_plugin:
 #endif
   if (!(sym= dlsym(dlhandle, plugin_declarations_sym)))
   {

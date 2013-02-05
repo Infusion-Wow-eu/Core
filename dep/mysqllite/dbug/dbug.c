@@ -1175,7 +1175,7 @@ void _db_return_(uint _line_, struct _db_stack_frame_ *_stack_frame_)
         pthread_mutex_lock(&THR_LOCK_dbug);
       DoPrefix(cs, _line_);
       Indent(cs, cs->level);
-      (void) fprintf(cs->stack->out_file, "<%s %u\n", cs->func, _line_);
+      (void) fprintf(cs->stack->out_file, "<%s\n", cs->func);
       DbugFlush(cs);
     }
   }
@@ -1273,7 +1273,7 @@ void _db_doprnt_(const char *format,...)
 
 /*
  * This function is intended as a
- * vfprintf clone with consistent, platform independent output for 
+ * vfprintf clone with consistent, platform independent output for
  * problematic formats like %p, %zd and %lld.
  */
 static void DbugVfprintf(FILE *stream, const char* format, va_list args)

@@ -154,4 +154,3 @@ char *my_strndup(const char *from, size_t length, myf my_flags)
   }
   return ptr;
 }
-
