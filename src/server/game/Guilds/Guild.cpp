@@ -2193,10 +2193,10 @@ bool Guild::LoadFromDB(Field* fields)
     for (uint8 i = 0; i < purchasedTabs; ++i)
         m_bankTabs[i] = new BankTab(m_id, i);
 
-    m_xp = fields[13].GetUInt64();
-    m_level = fields[14].GetUInt32();
-    m_today_xp = fields[15].GetUInt64();
-    m_xp_cap = fields[16].GetUInt64();
+    m_xp = fields[14].GetUInt64();
+    m_level = fields[15].GetUInt32();
+    m_today_xp = fields[16].GetUInt64();
+    m_xp_cap = fields[17].GetUInt64();
 
     if (m_level == 0)
         m_level = 1;
